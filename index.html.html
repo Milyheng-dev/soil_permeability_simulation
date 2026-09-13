@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soil Permeability Apparatus</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ═══════════ RESET ═══════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  font-family:'Segoe UI',system-ui,sans-serif;
+  background:#0d1117;color:#e6edf3;
+  display:flex;flex-direction:column;
+  min-height:100vh;
+}
+
+/* ═══════════ HEADER ═══════════ */
+.hdr{
+  background:linear-gradient(135deg,#161b22,#21262d);
+  border-bottom:1px solid #30363d;
+  padding:10px 20px;
+  display:flex;align-items:center;gap:12px;
+  flex-shrink:0;
+}
+.hdr-logo{
+  width:36px;height:36px;flex-shrink:0;
+  background:linear-gradient(135deg,#1f6feb,#388bfd);
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:18px;
+}
+.hdr-text{flex:1;min-width:0;}
+.hdr-text h1{font-size:0.95rem;font-weight:600;color:#f0f6fc;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hdr-text p{font-size:0.68rem;color:#8b949e;margin-top:1px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.badge{
+  flex-shrink:0;padding:4px 12px;border-radius:20px;
+  font-size:0.7rem;font-weight:600;letter-spacing:.04em;transition:all .3s;
+}
+.badge.idle    {background:#1c1c2b;color:#8b949e;border:1px solid #30363d;}
+.badge.running {background:#1c2b1c;color:#3fb950;border:1px solid #238636;}
+.badge.complete{background:#2b2b1c;color:#e3b341;border:1px solid #9e6a03;}
+
+/* ═══════════ TAB BAR (phone only) ═══════════ */
+.tabs{
+  display:none;   /* shown via media query */
+  background:#161b22;
+  border-bottom:1px solid #30363d;
+  flex-shrink:0;
+}
+.tabs button{
+  flex:1;padding:11px 6px;background:none;border:none;
+  border-bottom:2px solid transparent;
+  color:#8b949e;font-size:0.75rem;font-weight:500;cursor:pointer;
+  transition:.18s;
+}
+.tabs button.on{color:#58a6ff;border-bottom-color:#1f6feb;}
+
+/* ═══════════ DESKTOP GRID ═══════════ */
+/* body is flex-col, so .app fills remaining height */
+.app{
+  flex:1;
+  display:grid;
+  grid-template-columns:260px 1fr 310px;
+  grid-template-rows:1fr;
+  overflow:hidden;   /* each column scrolls internally */
+  min-height:0;
+}
+
+/* ═══════════ PANELS ═══════════ */
+.col{
+  padding:12px;
+  overflow-y:auto;
+  display:flex;flex-direction:column;gap:10px;
+  -webkit-overflow-scrolling:touch;
+}
+.col-left {border-right:1px solid #21262d;}
+.col-right {border-left:1px solid #21262d;}
+.col-mid{
+  background:#0d1117;
+  display:flex;flex-direction:column;
+  align-items:center;
+  overflow-y:auto;
+  padding:16px 8px;
+  gap:0;
+}
+
+/* ═══════════ CARDS / SECTIONS ═══════════ */
+.card{
+  background:#161b22;border:1px solid #30363d;
+  border-radius:10px;padding:13px;flex-shrink:0;
+}
+.card h3{
+  font-size:0.68rem;font-weight:600;text-transform:uppercase;
+  letter-spacing:.08em;color:#8b949e;margin-bottom:10px;
+  display:flex;align-items:center;gap:6px;
+}
+.card h3::before{
+  content:'';display:inline-block;
+  width:3px;height:10px;background:#1f6feb;border-radius:2px;
+}
+
+/* ═══════════ FORM ELEMENTS ═══════════ */
+.lbl{display:block;font-size:.74rem;color:#8b949e;margin-bottom:3px;}
+select{
+  width:100%;background:#0d1117;border:1px solid #30363d;color:#e6edf3;
+  border-radius:6px;padding:7px 8px;font-size:.76rem;margin-bottom:9px;
+  cursor:pointer;outline:none;min-height:36px;
+}
+select:focus{border-color:#1f6feb;}
+input[type=range]{
+  width:100%;accent-color:#1f6feb;background:transparent;
+  border:none;margin-bottom:3px;cursor:pointer;height:22px;
+}
+.range-hint{
+  display:flex;justify-content:space-between;
+  font-size:.67rem;color:#8b949e;margin-bottom:8px;
+}
+.toggle{
+  display:flex;background:#0d1117;border:1px solid #30363d;
+  border-radius:6px;overflow:hidden;margin-bottom:9px;
+}
+.toggle button{
+  flex:1;padding:8px 4px;font-size:.73rem;font-weight:500;
+  background:none;border:none;color:#8b949e;cursor:pointer;transition:.2s;
+}
+.toggle button.on{background:#1f6feb;color:#fff;}
+
+/* ═══════════ BUTTONS ═══════════ */
+.btn-row{display:flex;gap:6px;}
+.btn{
+  flex:1;padding:9px 6px;border-radius:8px;border:none;
+  font-size:.78rem;font-weight:600;cursor:pointer;transition:.2s;
+  min-height:40px;
+}
+.btn-g{background:linear-gradient(135deg,#238636,#2ea043);color:#fff;}
+.btn-g:hover{filter:brightness(1.12);}
+.btn-r{background:linear-gradient(135deg,#b62324,#da3633);color:#fff;}
+.btn-r:hover{filter:brightness(1.12);}
+.btn-n{background:#21262d;color:#8b949e;border:1px solid #30363d;}
+.btn-n:hover{background:#30363d;color:#e6edf3;}
+.btn:disabled{opacity:.35;cursor:not-allowed;}
+
+/* ═══════════ SOLENOID ROW ═══════════ */
+.sol-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+#solDot{
+  width:14px;height:14px;border-radius:50%;flex-shrink:0;
+  background:#3fb950;box-shadow:0 0 7px #3fb950;transition:.3s;
+}
+#solLabel{font-size:.78rem;font-weight:600;color:#3fb950;}
+.sol-v{font-size:.66rem;color:#8b949e;margin-left:auto;}
+
+/* ═══════════ SPEC GRID ═══════════ */
+.spec{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:.72rem;}
+.spec .k{color:#8b949e;}
+.spec .v{color:#e6edf3;}
+
+/* ═══════════ SENSOR CARDS ═══════════ */
+.sensors{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.sc{
+  background:#0d1117;border:1px solid #30363d;border-radius:8px;
+  padding:9px;text-align:center;transition:border-color .3s;
+}
+.sc.on{border-color:#1f6feb;}
+.sc .sl{font-size:.6rem;text-transform:uppercase;letter-spacing:.05em;color:#8b949e;margin-bottom:2px;}
+.sc .sv{font-size:1.1rem;font-weight:700;color:#58a6ff;font-variant-numeric:tabular-nums;}
+.sc .su{font-size:.6rem;color:#8b949e;}
+
+/* ═══════════ RESULT ═══════════ */
+.result{
+  background:#0d1117;border:1px solid #238636;
+  border-radius:8px;padding:11px;text-align:center;
+}
+.result .rl{font-size:.67rem;color:#8b949e;margin-bottom:2px;}
+.result .rv{font-size:1.45rem;font-weight:700;color:#3fb950;font-variant-numeric:tabular-nums;}
+.result .ru{font-size:.68rem;color:#8b949e;}
+.formula{margin-top:7px;font-size:.67rem;color:#8b949e;text-align:center;line-height:1.8;}
+
+/* ═══════════ CHART ═══════════ */
+.chart-box{
+  background:#0d1117;border:1px solid #30363d;
+  border-radius:8px;padding:10px;
+}
+canvas.ch{max-height:120px !important;}
+
+/* ═══════════ LOG ═══════════ */
+.log{
+  background:#0d1117;border:1px solid #30363d;border-radius:8px;
+  padding:9px;font-family:'Cascadia Code','Courier New',monospace;
+  font-size:.66rem;color:#7ee787;height:110px;
+  overflow-y:auto;line-height:1.65;
+  -webkit-overflow-scrolling:touch;
+}
+.log .lt{color:#8b949e;}
+.log .lw{color:#e3b341;}
+.log .li{color:#58a6ff;}
+
+/* ═══════════ SVG ═══════════ */
+.mid-title{
+  font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;
+  color:#8b949e;margin-bottom:8px;
+}
+#svg-wrap{width:100%;display:flex;justify-content:center;}
+#apparatus-svg{width:100%;max-width:480px;height:auto;}
+
+/* ═══════════ ANIMATIONS ═══════════ */
+@keyframes pulse-g{0%,100%{opacity:1;}50%{opacity:.3;}}
+.sol-on{animation:pulse-g .9s ease-in-out infinite;}
+@keyframes chip-b{0%,100%{fill:#1f6feb;}50%{fill:#58a6ff;}}
+.chip-led{animation:chip-b 1.4s ease-in-out infinite;}
+@keyframes pwr-b{0%,100%{opacity:1;}50%{opacity:.45;}}
+.power-led{animation:pwr-b 2s ease-in-out infinite;}
+@keyframes dash-f{to{stroke-dashoffset:-20;}}
+.fl{stroke-dasharray:6 4;animation:dash-f .45s linear infinite;}
+.fl.off{animation-play-state:paused;}
+@keyframes wave{0%,100%{ry:3;}50%{ry:5;}}
+#waterSurface{animation:wave 1.2s ease-in-out infinite;}
+
+/* ══════════════════════════════════════════════
+   TABLET  600 – 1023 px
+   Two columns top (controls | apparatus)
+   + full-width data row below
+══════════════════════════════════════════════ */
+@media(max-width:1023px){
+
+  /* Re-layout as 2-row grid */
+  .app{
+    display:grid;
+    grid-template-columns:240px 1fr;
+    grid-template-rows:auto auto;
+    grid-template-areas:
+      "left  mid"
+      "data  data";
+    overflow:visible;
+    height:auto;
+  }
+
+  .col-left { grid-area:left; overflow-y:visible; border-right:1px solid #21262d; border-bottom:1px solid #21262d; }
+  .col-mid  { grid-area:mid;  overflow-y:visible; border-bottom:1px solid #21262d; min-height:500px; }
+  .col-right{ grid-area:data; overflow-y:visible; border-left:none; border-top:none; }
+
+  /* data row becomes 2-column flex on tablet */
+  .col-right .card:has(.sensors){ order:-1; } /* sensors first */
+  .data-inner{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    padding:12px;
+  }
+  /* sensors span full row */
+  .card-sensors{ grid-column:1/-1; }
+  /* result spans full row */
+  .card-result { grid-column:1/-1; }
+
+  .sensors{ grid-template-columns:repeat(3,1fr); }
+
+  canvas.ch{ max-height:130px !important; }
+}
+
+/* ══════════════════════════════════════════════
+   PHONE  < 600 px
+   Single column, tab navigation
+══════════════════════════════════════════════ */
+@media(max-width:599px){
+
+  .hdr-text p{display:none;}
+  .hdr-text h1{font-size:.85rem;}
+  .hdr{padding:8px 12px;}
+  .badge{font-size:.65rem;padding:3px 8px;}
+
+  /* show tabs */
+  .tabs{display:flex;}
+
+  /* flat single-column layout */
+  .app{
+    display:block;
+    height:auto;
+    overflow:visible;
+  }
+
+  /* all 3 cols stacked but only one visible at a time */
+  .col-left, .col-mid, .col-right{
+    display:none;
+    border:none !important;
+    padding:10px;
+    overflow-y:visible;
+  }
+  .col-left.on, .col-right.on { display:flex; flex-direction:column; gap:10px; }
+  .col-mid.on  { display:flex; flex-direction:column; align-items:center; padding:10px 8px; }
+
+  /* data inner grid becomes single col on phone */
+  .data-inner{
+    display:flex;flex-direction:column;gap:10px;
+    padding:0;
+  }
+
+  #apparatus-svg{max-width:100%;}
+  canvas.ch{max-height:150px !important;}
+  .sensors{grid-template-columns:1fr 1fr;}
+
+  /* wider buttons */
+  .btn{font-size:.82rem;}
+}
+
+/* ══════════════════════════════════════════════
+   EXTRA SMALL  < 380 px
+══════════════════════════════════════════════ */
+@media(max-width:380px){
+  .sc .sv{font-size:.95rem;}
+  .result .rv{font-size:1.2rem;}
+  .card{padding:10px;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-logo">💧</div>
+  <div class="hdr-text">
+    <h1>Automatic Soil Permeability Apparatus</h1>
+    <p>ESP32 · MPX5010DP ×2 · HX711 Load Cell · 12V Solenoid</p>
+  </div>
+  <span class="badge idle" id="statusBadge">IDLE</span>
+</header>
+
+<!-- TAB BAR (phone) -->
+<nav class="tabs" id="tabBar">
+  <button class="on"  onclick="tab('left')">⚙ Controls</button>
+  <button            onclick="tab('mid')">🔬 Apparatus</button>
+  <button            onclick="tab('right')">📊 Data</button>
+</nav>
+
+<!-- APP -->
+<div class="app">
+
+  <!-- ══ LEFT — Controls ══ -->
+  <div class="col col-left on" id="colLeft">
+
+    <div class="card">
+      <h3>Test Configuration</h3>
+      <label class="lbl">Test Method</label>
+      <div class="toggle">
+        <button class="on" id="btnConst" onclick="setMode('constant')">Constant Head</button>
+        <button id="btnFall" onclick="setMode('falling')">Falling Head</button>
+      </div>
+      <label class="lbl">Soil Type</label>
+      <select id="soilType" onchange="setSoil()">
+        <option value="gravel">Gravel  (k ≈ 1×10⁻² m/s)</option>
+        <option value="coarse_sand" selected>Coarse Sand  (k ≈ 1×10⁻³ m/s)</option>
+        <option value="medium_sand">Medium Sand  (k ≈ 1×10⁻⁴ m/s)</option>
+        <option value="fine_sand">Fine Sand  (k ≈ 1×10⁻⁵ m/s)</option>
+        <option value="silt">Silt  (k ≈ 1×10⁻⁶ m/s)</option>
+        <option value="clay">Clay  (k ≈ 1×10⁻⁷ m/s)</option>
+      </select>
+      <label class="lbl">Initial Head: <strong id="headVal">200</strong> mm</label>
+      <input type="range" id="headSlider" min="50" max="300" value="200" oninput="setHead(this.value)">
+      <div class="range-hint"><span>50 mm</span><span>300 mm</span></div>
+      <label class="lbl">Supply Flow: <strong id="flowVal">80</strong> mL/min</label>
+      <input type="range" id="flowSlider" min="10" max="200" value="80" oninput="setFlow(this.value)">
+      <div class="range-hint"><span>10</span><span>200 mL/min</span></div>
+    </div>
+
+    <div class="card">
+      <h3>Test Controls</h3>
+      <div class="btn-row">
+        <button class="btn btn-g" id="btnStart" onclick="startTest()">▶ Start</button>
+        <button class="btn btn-r" id="btnStop"  onclick="stopTest()" disabled>■ Stop</button>
+        <button class="btn btn-n" onclick="resetAll()">↺ Reset</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Solenoid Valve</h3>
+      <div class="sol-row">
+        <div id="solDot"></div>
+        <span id="solLabel">OPEN</span>
+        <span class="sol-v">12V DC</span>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-n" onclick="toggleSol()">Toggle Valve</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Specimen Info</h3>
+      <div class="spec">
+        <span class="k">Diameter</span>  <span class="v">50 mm</span>
+        <span class="k">Height (L)</span><span class="v">300 mm</span>
+        <span class="k">Area (A)</span>  <span class="v">1963 mm²</span>
+        <span class="k">Material</span>  <span class="v">Acrylic</span>
+        <span class="k">Temp</span>      <span class="v">25 °C</span>
+      </div>
+    </div>
+
+  </div><!-- /col-left -->
+
+  <!-- ══ MID — Apparatus SVG ══ -->
+  <div class="col-mid" id="colMid">
+    <p class="mid-title">Live Apparatus View</p>
+    <div id="svg-wrap">
+      <svg id="apparatus-svg" viewBox="0 0 520 530" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#2080d0" stop-opacity=".88"/>
+            <stop offset="100%" stop-color="#0a4080" stop-opacity=".95"/>
+          </linearGradient>
+          <linearGradient id="soilGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#8B6914"/>
+            <stop offset="50%"  stop-color="#6B4F10"/>
+            <stop offset="100%" stop-color="#4A350C"/>
+          </linearGradient>
+          <linearGradient id="glassGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#1a2a3a" stop-opacity=".7"/>
+            <stop offset="25%"  stop-color="#2a4a6a" stop-opacity=".25"/>
+            <stop offset="75%"  stop-color="#2a4a6a" stop-opacity=".25"/>
+            <stop offset="100%" stop-color="#1a2a3a" stop-opacity=".7"/>
+          </linearGradient>
+          <linearGradient id="metalGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%"   stop-color="#444"/>
+            <stop offset="50%"  stop-color="#888"/>
+            <stop offset="100%" stop-color="#444"/>
+          </linearGradient>
+          <linearGradient id="supplyWater" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#58a6ff" stop-opacity=".75"/>
+            <stop offset="100%" stop-color="#1d6fb5" stop-opacity=".55"/>
+          </linearGradient>
+          <linearGradient id="beakerWater" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#58a6ff" stop-opacity=".50"/>
+            <stop offset="100%" stop-color="#1d6fb5" stop-opacity=".85"/>
+          </linearGradient>
+          <linearGradient id="pcbGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#1d4020"/>
+            <stop offset="100%" stop-color="#0c2010"/>
+          </linearGradient>
+          <linearGradient id="plateGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%"   stop-color="#3a3a3a"/>
+            <stop offset="100%" stop-color="#222"/>
+          </linearGradient>
+          <linearGradient id="hxGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%"   stop-color="#6a0a0a"/>
+            <stop offset="100%" stop-color="#3a0505"/>
+          </linearGradient>
+          <clipPath id="columnClip"><rect x="155" y="95" width="90" height="250"/></clipPath>
+          <clipPath id="beakerClip"><polygon points="169,415 231,415 239,472 161,472"/></clipPath>
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <!-- METAL STAND -->
+        <rect x="140" y="68" width="8"   height="315" rx="3" fill="url(#metalGrad)"/>
+        <rect x="253" y="68" width="8"   height="315" rx="3" fill="url(#metalGrad)"/>
+        <rect x="136" y="66" width="130" height="10"  rx="3" fill="url(#metalGrad)"/>
+        <rect x="132" y="378" width="138" height="8"  rx="3" fill="url(#metalGrad)"/>
+        <rect x="141" y="340" width="6"  height="40"  rx="2" fill="#666"/>
+        <rect x="254" y="340" width="6"  height="40"  rx="2" fill="#666"/>
+
+        <!-- SUPPLY PIPE -->
+        <rect x="200" y="52" width="120" height="9" rx="4" fill="#3d6e8a"/>
+        <rect x="200" y="53" width="120" height="3" rx="2" fill="#5a9abf" opacity=".4"/>
+        <rect x="196" y="60" width="9"   height="34" rx="3" fill="#3d6e8a"/>
+        <line id="supplyFlow1" x1="200" y1="62" x2="200" y2="92"
+              stroke="#58a6ff" stroke-width="5" stroke-linecap="round"
+              class="fl off" opacity=".8"/>
+
+        <!-- SOLENOID -->
+        <rect x="295" y="44" width="46" height="28" rx="6" fill="#b8980a" stroke="#d4b020" stroke-width="1.5"/>
+        <rect x="298" y="47" width="40" height="8"  rx="2" fill="#c8aa18" opacity=".5"/>
+        <rect x="305" y="34" width="26" height="12" rx="4" fill="#7a5808" stroke="#9a7810" stroke-width="1"/>
+        <line x1="308" y1="34" x2="308" y2="46" stroke="#5a4006" stroke-width="1"/>
+        <line x1="313" y1="34" x2="313" y2="46" stroke="#5a4006" stroke-width="1"/>
+        <line x1="318" y1="34" x2="318" y2="46" stroke="#5a4006" stroke-width="1"/>
+        <line x1="323" y1="34" x2="323" y2="46" stroke="#5a4006" stroke-width="1"/>
+        <line x1="328" y1="34" x2="328" y2="46" stroke="#5a4006" stroke-width="1"/>
+        <circle id="svgSolLed" cx="319" cy="63" r="5" fill="#3fb950" filter="url(#glow)" class="sol-on"/>
+        <rect x="316" y="71" width="8" height="6" rx="2" fill="#8a7010"/>
+        <text x="318" y="86"  text-anchor="middle" font-size="7" fill="#8b949e" font-family="monospace">SOLENOID</text>
+        <text x="318" y="93"  text-anchor="middle" font-size="6" fill="#8b949e" font-family="monospace">12V DC</text>
+        <path d="M341 58 Q380 58 380 100 L380 168" stroke="#e3b341" stroke-width="2.5" fill="none" opacity=".85"/>
+
+        <!-- RESERVOIR -->
+        <rect x="162" y="72" width="75" height="26" rx="4" fill="url(#supplyWater)" stroke="#2a5a8a" stroke-width="1.5"/>
+        <ellipse cx="200" cy="72" rx="37" ry="5" fill="#58a6ff" opacity=".5"/>
+        <text x="118" y="82" font-size="7.5" fill="#58a6ff" font-family="monospace" font-weight="bold">WATER SUPPLY</text>
+
+        <!-- ACRYLIC COLUMN -->
+        <rect x="155" y="95"  width="90" height="250" rx="4" fill="none" stroke="#2060a0" stroke-width="2.5"/>
+        <rect x="157" y="97"  width="86" height="246" rx="3" fill="url(#glassGrad)"/>
+        <rect x="158" y="98"  width="8"  height="244" rx="2" fill="#fff" opacity=".06"/>
+        <rect id="soilBody" x="158" y="200" width="84" height="142" fill="url(#soilGrad)" rx="2"/>
+        <g opacity=".4" clip-path="url(#columnClip)">
+          <circle cx="170" cy="215" r="2.2" fill="#c8a030"/><circle cx="185" cy="222" r="1.5" fill="#a07820"/>
+          <circle cx="200" cy="210" r="2"   fill="#d4b040"/><circle cx="215" cy="218" r="1.5" fill="#a07820"/>
+          <circle cx="228" cy="212" r="2"   fill="#c8a030"/><circle cx="172" cy="238" r="1.5" fill="#a07820"/>
+          <circle cx="192" cy="246" r="2"   fill="#c8a030"/><circle cx="208" cy="234" r="1.5" fill="#a07820"/>
+          <circle cx="223" cy="244" r="2"   fill="#c8a030"/><circle cx="165" cy="258" r="2"   fill="#a07820"/>
+          <circle cx="180" cy="268" r="1.5" fill="#c8a030"/><circle cx="200" cy="263" r="2"   fill="#a07820"/>
+          <circle cx="216" cy="273" r="1.5" fill="#c8a030"/><circle cx="230" cy="256" r="2"   fill="#a07820"/>
+          <circle cx="168" cy="288" r="1.5" fill="#c8a030"/><circle cx="188" cy="298" r="2"   fill="#a07820"/>
+          <circle cx="210" cy="290" r="1.5" fill="#c8a030"/><circle cx="226" cy="303" r="2"   fill="#a07820"/>
+          <circle cx="175" cy="316" r="2"   fill="#c8a030"/><circle cx="200" cy="323" r="1.5" fill="#a07820"/>
+          <circle cx="221" cy="318" r="2"   fill="#c8a030"/>
+        </g>
+        <rect id="waterAbove" x="158" y="197" width="84" height="0" fill="url(#waterGrad)" rx="2" opacity=".88"/>
+        <ellipse id="waterSurface" cx="200" cy="197" rx="42" ry="3" fill="#58a6ff" opacity="0"/>
+        <rect id="waterBelow" x="158" y="340" width="84" height="4" fill="url(#waterGrad)" rx="1" opacity=".7"/>
+        <rect x="150" y="89"  width="100" height="10" rx="4" fill="#2060a0"/>
+        <rect x="150" y="343" width="100" height="10" rx="4" fill="#2060a0"/>
+        <rect x="246" y="92"  width="18"  height="7"  rx="2" fill="#3d7ab0"/>
+        <text x="108" y="193" font-size="7.5" fill="#58a6ff" font-family="monospace" font-weight="bold">ACRYLIC</text>
+        <text x="108" y="202" font-size="7.5" fill="#58a6ff" font-family="monospace" font-weight="bold">COLUMN</text>
+        <text x="106" y="211" font-size="6"   fill="#8b949e" font-family="monospace">Ø50×H300mm</text>
+
+        <!-- P1 -->
+        <rect x="121" y="153" width="32" height="24" rx="4" fill="#252545" stroke="#4040a0" stroke-width="1.5"/>
+        <rect x="124" y="156" width="26" height="18" rx="2" fill="#1a1a35"/>
+        <circle cx="153" cy="165" r="6" fill="#111130" stroke="#6060c0" stroke-width="1.5"/>
+        <circle cx="153" cy="165" r="3" fill="#2a2a50"/>
+        <rect x="152" y="163" width="5" height="4" rx="1" fill="#4040a0"/>
+        <line x1="157" y1="165" x2="160" y2="165" stroke="#6060c0" stroke-width="2"/>
+        <text x="122" y="150" font-size="7.5" fill="#8b949e" font-family="monospace">P1 (UPPER)</text>
+        <text x="125" y="188" font-size="6"   fill="#8b949e" font-family="monospace">MPX5010DP</text>
+        <path d="M121 165 Q85 165 85 195 L85 280 Q85 310 130 310 L378 310"
+              stroke="#58a6ff" stroke-width="1.8" fill="none" stroke-dasharray="4,3" opacity=".7"/>
+
+        <!-- P2 -->
+        <rect x="121" y="286" width="32" height="24" rx="4" fill="#252545" stroke="#4040a0" stroke-width="1.5"/>
+        <rect x="124" y="289" width="26" height="18" rx="2" fill="#1a1a35"/>
+        <circle cx="153" cy="298" r="6" fill="#111130" stroke="#6060c0" stroke-width="1.5"/>
+        <circle cx="153" cy="298" r="3" fill="#2a2a50"/>
+        <rect x="152" y="296" width="5" height="4" rx="1" fill="#4040a0"/>
+        <line x1="157" y1="298" x2="160" y2="298" stroke="#6060c0" stroke-width="2"/>
+        <text x="122" y="283" font-size="7.5" fill="#8b949e" font-family="monospace">P2 (LOWER)</text>
+        <text x="125" y="321" font-size="6"   fill="#8b949e" font-family="monospace">MPX5010DP</text>
+        <path d="M121 298 Q90 298 90 330 Q90 340 130 340 L378 340"
+              stroke="#58a6ff" stroke-width="1.8" fill="none" stroke-dasharray="4,3" opacity=".7"/>
+
+        <!-- FUNNEL -->
+        <polygon points="157,353 243,353 223,397 177,397" fill="#253040" stroke="#3a5570" stroke-width="1.5"/>
+        <rect x="189" y="395" width="22" height="22" rx="3" fill="#253040" stroke="#3a5570" stroke-width="1"/>
+        <rect id="funnelFlow" x="197" y="397" width="6" height="20" fill="#58a6ff" opacity="0" rx="2"/>
+        <text x="104" y="378" font-size="7.5" fill="#8b949e" font-family="monospace">PLASTIC FUNNEL</text>
+
+        <!-- BEAKER -->
+        <polygon points="169,416 231,416 239,472 161,472" fill="#0c1928" stroke="#2060a0" stroke-width="2" opacity=".9"/>
+        <polygon points="226,416 236,416 240,422 229,422" fill="#1a3a60" opacity=".7"/>
+        <rect id="beakerLevel" x="159" y="472" width="83" height="0" fill="url(#beakerWater)" clip-path="url(#beakerClip)"/>
+        <line x1="228" y1="425" x2="236" y2="425" stroke="#2060a0" stroke-width="1.2"/>
+        <line x1="231" y1="440" x2="239" y2="440" stroke="#2060a0" stroke-width="1.2"/>
+        <line x1="234" y1="455" x2="242" y2="455" stroke="#2060a0" stroke-width="1.2"/>
+        <text x="244" y="427" font-size="6.5" fill="#8b949e">100</text>
+        <text x="244" y="442" font-size="6.5" fill="#8b949e">200</text>
+        <text x="244" y="457" font-size="6.5" fill="#8b949e">300</text>
+        <rect x="159" y="470" width="83" height="4" rx="1" fill="#1a3a60" opacity=".6"/>
+        <text x="55"  y="462" font-size="7.5" fill="#8b949e" font-family="monospace">EFFLUENT</text>
+        <text x="57"  y="471" font-size="7.5" fill="#8b949e" font-family="monospace">BEAKER</text>
+
+        <!-- LOAD CELL -->
+        <rect x="154" y="473" width="93" height="9"  rx="3" fill="#4a4a4a" stroke="#777" stroke-width="1"/>
+        <rect x="172" y="481" width="57" height="6"  rx="2" fill="#b0a020" stroke="#908010" stroke-width="1"/>
+        <rect x="162" y="481" width="7"  height="16" rx="2" fill="#555"/>
+        <rect x="232" y="481" width="7"  height="16" rx="2" fill="#555"/>
+        <rect x="155" y="495" width="93" height="6"  rx="2" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+        <text x="200" y="513" text-anchor="middle" font-size="7" fill="#8b949e" font-family="monospace">HX711 LOAD CELL (5kg)</text>
+        <path d="M247 484 Q265 484 265 460 Q265 445 278 445" stroke="#da3633" stroke-width="1.5" fill="none" opacity=".85"/>
+        <path d="M247 484 Q268 484 268 458 Q268 448 278 448" stroke="#3fb950" stroke-width="1.5" fill="none" opacity=".85"/>
+        <path d="M247 484 Q271 484 271 462 Q271 451 278 451" stroke="#e6edf3" stroke-width="1.5" fill="none" opacity=".6"/>
+        <path d="M247 484 Q274 484 274 464 Q274 454 278 454" stroke="#333"    stroke-width="1.5" fill="none" opacity=".9"/>
+
+        <!-- HX711 AMP (RED) -->
+        <rect x="278" y="432" width="56" height="36" rx="4" fill="url(#hxGrad)" stroke="#c01010" stroke-width="1.8"/>
+        <rect x="282" y="436" width="48" height="28" rx="3" fill="#500808"/>
+        <rect x="291" y="440" width="22" height="16" rx="2" fill="#111" stroke="#333" stroke-width="1"/>
+        <text x="302" y="451" text-anchor="middle" font-size="5.5" fill="#888" font-family="monospace">HX711</text>
+        <circle cx="286" cy="444" r="2.5" fill="#c8a020"/>
+        <circle cx="286" cy="452" r="2.5" fill="#c8a020"/>
+        <rect x="319" y="438" width="6" height="4" rx="1" fill="#e6edf3" opacity=".8"/>
+        <rect x="319" y="444" width="6" height="4" rx="1" fill="#e6edf3" opacity=".8"/>
+        <rect x="319" y="450" width="6" height="4" rx="1" fill="#e6edf3" opacity=".8"/>
+        <rect x="319" y="456" width="6" height="4" rx="1" fill="#e6edf3" opacity=".8"/>
+        <circle cx="283" cy="465" r="2"   fill="#2a0505"/>
+        <circle cx="329" cy="437" r="1.5" fill="#2a0505"/>
+        <text x="306" y="478" text-anchor="middle" font-size="7" fill="#8b949e" font-family="monospace">HX711 AMPLIFIER</text>
+        <path d="M325 440 Q340 440 340 380 Q340 370 378 370" stroke="#da3633" stroke-width="2"   fill="none" opacity=".85"/>
+        <path d="M325 450 Q343 450 343 385 Q343 375 378 375" stroke="#555"    stroke-width="2"   fill="none" opacity=".9"/>
+        <path d="M325 445 Q337 445 337 383 Q337 372 378 372" stroke="#3fb950" stroke-width="1.5" fill="none" opacity=".8"/>
+
+        <!-- ESP32 PLATE -->
+        <rect x="375" y="100" width="130" height="185" rx="8" fill="url(#plateGrad)" stroke="#555" stroke-width="2"/>
+        <rect x="379" y="104" width="122" height="177" rx="6" fill="#1a1a1a" stroke="#333" stroke-width="1"/>
+        <circle cx="382" cy="107" r="3" fill="#444" stroke="#666" stroke-width="1"/>
+        <circle cx="498" cy="107" r="3" fill="#444" stroke="#666" stroke-width="1"/>
+        <circle cx="382" cy="278" r="3" fill="#444" stroke="#666" stroke-width="1"/>
+        <circle cx="498" cy="278" r="3" fill="#444" stroke="#666" stroke-width="1"/>
+        <text x="440" y="97" text-anchor="middle" font-size="8" fill="#8b949e" font-family="monospace" font-weight="bold">ESP32 MICROCONTROLLER</text>
+
+        <!-- ESP32 PCB -->
+        <rect x="390" y="112" width="100" height="162" rx="5" fill="url(#pcbGrad)" stroke="#2ea043" stroke-width="2"/>
+        <rect x="393" y="115" width="94"  height="156" rx="4" fill="#102010" opacity=".6"/>
+        <rect x="402" y="122" width="76"  height="56"  rx="3" fill="#2a3a2a" stroke="#3fb950" stroke-width="1.5"/>
+        <rect x="404" y="124" width="72"  height="52"  rx="2" fill="#1e2e1e"/>
+        <text x="440" y="143" text-anchor="middle" font-size="7.5" fill="#3fb950" font-family="monospace" font-weight="bold">ESP32</text>
+        <text x="440" y="153" text-anchor="middle" font-size="6"   fill="#8b949e" font-family="monospace">WROOM-32</text>
+        <text x="440" y="162" text-anchor="middle" font-size="5.5" fill="#8b949e" font-family="monospace">240MHz Dual Core</text>
+        <rect x="473" y="118" width="8"  height="20" rx="2" fill="#3fb950" opacity=".7"/>
+        <rect x="475" y="116" width="4"  height="8"  rx="1" fill="#3fb950" opacity=".5"/>
+        <circle class="chip-led"  cx="398" cy="127" r="3.5" fill="#1f6feb" filter="url(#glow)"/>
+        <circle class="power-led" cx="398" cy="137" r="3.5" fill="#3fb950" filter="url(#glow)"/>
+        <text x="403" y="129" font-size="5" fill="#8b949e">TX</text>
+        <text x="403" y="139" font-size="5" fill="#8b949e">PWR</text>
+        <rect x="427" y="268" width="26" height="10" rx="2" fill="#222" stroke="#555" stroke-width="1.2"/>
+        <rect x="430" y="270" width="20" height="6"  rx="1" fill="#111"/>
+        <text x="440" y="282" text-anchor="middle" font-size="5.5" fill="#8b949e" font-family="monospace">micro-USB</text>
+        <rect x="482" y="198" width="7" height="7" rx="1" fill="#da3633" stroke="#f78166" stroke-width=".8"/>
+        <text x="491" y="204" font-size="5" fill="#8b949e">RST</text>
+        <rect x="482" y="210" width="7" height="7" rx="1" fill="#388bfd" stroke="#58a6ff" stroke-width=".8"/>
+        <text x="491" y="216" font-size="5" fill="#8b949e">BOOT</text>
+        <g fill="#c0c0c0">
+          <rect x="391" y="185" width="5" height="3" rx="1"/><rect x="391" y="190" width="5" height="3" rx="1"/>
+          <rect x="391" y="195" width="5" height="3" rx="1"/><rect x="391" y="200" width="5" height="3" rx="1"/>
+          <rect x="391" y="205" width="5" height="3" rx="1"/><rect x="391" y="210" width="5" height="3" rx="1"/>
+          <rect x="391" y="215" width="5" height="3" rx="1"/><rect x="391" y="220" width="5" height="3" rx="1"/>
+          <rect x="391" y="225" width="5" height="3" rx="1"/><rect x="391" y="230" width="5" height="3" rx="1"/>
+          <rect x="391" y="235" width="5" height="3" rx="1"/><rect x="391" y="240" width="5" height="3" rx="1"/>
+          <rect x="391" y="245" width="5" height="3" rx="1"/><rect x="391" y="250" width="5" height="3" rx="1"/>
+          <rect x="391" y="255" width="5" height="3" rx="1"/><rect x="391" y="260" width="5" height="3" rx="1"/>
+        </g>
+        <g fill="#c0c0c0">
+          <rect x="484" y="185" width="5" height="3" rx="1"/><rect x="484" y="190" width="5" height="3" rx="1"/>
+          <rect x="484" y="195" width="5" height="3" rx="1"/><rect x="484" y="200" width="5" height="3" rx="1"/>
+          <rect x="484" y="205" width="5" height="3" rx="1"/><rect x="484" y="210" width="5" height="3" rx="1"/>
+          <rect x="484" y="215" width="5" height="3" rx="1"/><rect x="484" y="220" width="5" height="3" rx="1"/>
+          <rect x="484" y="225" width="5" height="3" rx="1"/><rect x="484" y="230" width="5" height="3" rx="1"/>
+          <rect x="484" y="235" width="5" height="3" rx="1"/><rect x="484" y="240" width="5" height="3" rx="1"/>
+          <rect x="484" y="245" width="5" height="3" rx="1"/><rect x="484" y="250" width="5" height="3" rx="1"/>
+          <rect x="484" y="255" width="5" height="3" rx="1"/><rect x="484" y="260" width="5" height="3" rx="1"/>
+        </g>
+        <!-- WIRE BUNDLE -->
+        <path d="M378 310 Q386 310 386 300 L386 265" stroke="#58a6ff" stroke-width="2"   fill="none" opacity=".8"/>
+        <path d="M378 340 Q388 340 388 330 L388 265" stroke="#58a6ff" stroke-width="2"   fill="none" opacity=".8"/>
+        <path d="M380 168 L386 168 L386 185"         stroke="#e3b341" stroke-width="2.5" fill="none" opacity=".9"/>
+        <path d="M378 370 Q390 370 390 360 L390 265" stroke="#da3633" stroke-width="2"   fill="none" opacity=".85"/>
+        <path d="M378 372 Q392 372 392 362 L392 265" stroke="#3fb950" stroke-width="1.8" fill="none" opacity=".8"/>
+        <path d="M378 375 Q394 375 394 364 L394 265" stroke="#666"    stroke-width="2"   fill="none" opacity=".9"/>
+
+        <g id="waterParticles"></g>
+      </svg>
+    </div>
+  </div><!-- /col-mid -->
+
+  <!-- ══ RIGHT — Data ══ -->
+  <div class="col col-right" id="colRight">
+    <!-- on tablet this becomes .data-inner grid -->
+    <div class="data-inner">
+
+      <div class="card card-sensors">
+        <h3>Live Sensor Readings</h3>
+        <div class="sensors">
+          <div class="sc" id="cardP1">
+            <div class="sl">P1 Upper</div>
+            <div class="sv" id="valP1">0.00</div>
+            <div class="su">kPa</div>
+          </div>
+          <div class="sc" id="cardP2">
+            <div class="sl">P2 Lower</div>
+            <div class="sv" id="valP2">0.00</div>
+            <div class="su">kPa</div>
+          </div>
+          <div class="sc" id="cardHead">
+            <div class="sl">Head Δh</div>
+            <div class="sv" id="valHead">0.0</div>
+            <div class="su">mm</div>
+          </div>
+          <div class="sc" id="cardMass">
+            <div class="sl">Effluent</div>
+            <div class="sv" id="valMass">0.0</div>
+            <div class="su">g</div>
+          </div>
+          <div class="sc" id="cardFlow">
+            <div class="sl">Flow Rate</div>
+            <div class="sv" id="valFlow">0.000</div>
+            <div class="su">mL/s</div>
+          </div>
+          <div class="sc" id="cardTime">
+            <div class="sl">Elapsed</div>
+            <div class="sv" id="valTime">0</div>
+            <div class="su">sec</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-result">
+        <h3>Permeability Result</h3>
+        <div class="result">
+          <div class="rl">Hydraulic Conductivity (k)</div>
+          <div class="rv" id="valK">—</div>
+          <div class="ru" id="valKUnit">m/s</div>
+        </div>
+        <div class="formula">
+          Constant: k = Q·L / (A·h)<br>
+          Falling: k = (L/t) · ln(h₀/hₜ)
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Differential Pressure ΔP (kPa)</h3>
+        <div class="chart-box">
+          <canvas id="pressureChart" class="ch"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Effluent Mass (g)</h3>
+        <div class="chart-box">
+          <canvas id="massChart" class="ch"></canvas>
+        </div>
+      </div>
+
+      <div class="card" style="grid-column:1/-1">
+        <h3>System Log</h3>
+        <div class="log" id="logArea"></div>
+      </div>
+
+    </div><!-- /data-inner -->
+  </div><!-- /col-right -->
+
+</div><!-- /app -->
+
+<script>
+"use strict";
+
+/* ══ TAB SWITCHING (phone only) ══ */
+const COLS = {
+  left:  document.getElementById('colLeft'),
+  mid:   document.getElementById('colMid'),
+  right: document.getElementById('colRight'),
+};
+const TAB_BTNS = document.querySelectorAll('#tabBar button');
+
+function tab(name) {
+  Object.keys(COLS).forEach(k => COLS[k].classList.toggle('on', k === name));
+  TAB_BTNS.forEach((b,i) => {
+    const names = ['left','mid','right'];
+    b.classList.toggle('on', names[i] === name);
+  });
+}
+
+/* On resize: if we leave phone breakpoint, restore all cols visible */
+function syncLayout() {
+  if(window.innerWidth >= 600) {
+    Object.values(COLS).forEach(c => c.classList.remove('on'));
+  } else {
+    /* ensure one col is active */
+    const anyOn = Object.values(COLS).some(c => c.classList.contains('on'));
+    if(!anyOn) tab('left');
+  }
+}
+window.addEventListener('resize', syncLayout);
+syncLayout();
+
+/* ══ CONSTANTS ══ */
+const SOIL_K = {
+  gravel:1e-2, coarse_sand:1e-3, medium_sand:1e-4,
+  fine_sand:1e-5, silt:1e-6, clay:1e-7,
+};
+const SOIL_COLORS = {
+  gravel:      ['#9a9a7a','#7a7a58','#5a5a3a'],
+  coarse_sand: ['#c8a030','#a07818','#785a10'],
+  medium_sand: ['#c09040','#986828','#705018'],
+  fine_sand:   ['#c8a870','#a88050','#806030'],
+  silt:        ['#a89888','#887868','#686050'],
+  clay:        ['#9a7868','#7a5848','#5a4030'],
+};
+const COL_L = 0.3, COL_A = Math.PI*(0.025**2);
+const RHO=1000, G=9.81, BMAX=500;
+
+const S = {
+  running:false, mode:'constant', soil:'coarse_sand', k:1e-3,
+  h0:200, h:200, solenoid:true, t:0, mass:0,
+  p1:0, p2:0, q:0, kSmooth:null, kW:0,
+  iid:null, pid:null,
+};
+
+/* ══ CHARTS ══ */
+function mkChart(id, color, unit) {
+  return new Chart(document.getElementById(id).getContext('2d'), {
+    type:'line',
+    data:{labels:[],datasets:[{data:[],borderColor:color,backgroundColor:color+'18',
+      borderWidth:2,pointRadius:0,tension:.35,fill:true}]},
+    options:{animation:false,responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:'#8b949e',font:{size:9},maxTicksLimit:6},grid:{color:'#21262d'}},
+        y:{min:0,ticks:{color:'#8b949e',font:{size:9},callback:v=>v.toFixed(2)+unit},grid:{color:'#21262d'}}
+      }}
+  });
+}
+const PC = mkChart('pressureChart','#58a6ff',' kPa');
+const MC = mkChart('massChart',    '#3fb950','g');
+
+function push(c, label, v, max=80) {
+  c.data.labels.push(label);
+  c.data.datasets[0].data.push(v);
+  if(c.data.labels.length > max){ c.data.labels.shift(); c.data.datasets[0].data.shift(); }
+  c.update('none');
+}
+function clearCharts() {
+  [PC,MC].forEach(c=>{c.data.labels=[];c.data.datasets[0].data=[];c.update('none');});
+}
+
+/* ══ LOG ══ */
+function log(msg, t='') {
+  const a = document.getElementById('logArea');
+  const ts = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const d  = document.createElement('div');
+  d.innerHTML=`<span class="lt">[${ts}]</span> <span class="${t==='warn'?'lw':t==='info'?'li':''}">${msg}</span>`;
+  a.appendChild(d); a.scrollTop=a.scrollHeight;
+}
+
+/* ══ CONTROLS ══ */
+function setMode(m) {
+  S.mode=m;
+  document.getElementById('btnConst').classList.toggle('on',m==='constant');
+  document.getElementById('btnFall').classList.toggle('on', m==='falling');
+  log(`Mode → ${m==='constant'?'Constant Head':'Falling Head'}`,'info');
+}
+function setSoil() {
+  const s=document.getElementById('soilType').value;
+  S.soil=s; S.k=SOIL_K[s];
+  const c=SOIL_COLORS[s], g=document.getElementById('soilGrad');
+  g.children[0].setAttribute('stop-color',c[0]);
+  g.children[1].setAttribute('stop-color',c[1]);
+  g.children[2].setAttribute('stop-color',c[2]);
+  log(`Soil → ${s.replace(/_/g,' ')} | k=${S.k.toExponential(1)} m/s`,'info');
+}
+function setHead(v){ S.h0=S.h=+v; document.getElementById('headVal').textContent=v; }
+function setFlow(v){ document.getElementById('flowVal').textContent=v; }
+
+function toggleSol() {
+  S.solenoid=!S.solenoid;
+  refreshSol();
+  log(`Solenoid ${S.solenoid?'OPENED':'CLOSED'}`,S.solenoid?'info':'warn');
+}
+function refreshSol() {
+  const c=S.solenoid?'#3fb950':'#da3633';
+  const dot=document.getElementById('solDot');
+  const lbl=document.getElementById('solLabel');
+  const led=document.getElementById('svgSolLed');
+  dot.style.background=c; dot.style.boxShadow=`0 0 7px ${c}`;
+  lbl.style.color=c; lbl.textContent=S.solenoid?'OPEN':'CLOSED';
+  led.setAttribute('fill',c);
+  led.classList.toggle('sol-on',S.solenoid);
+}
+
+/* ══ TEST LIFECYCLE ══ */
+function startTest() {
+  if(S.running)return;
+  S.running=true; S.t=0; S.mass=0; S.h=S.h0;
+  S.kSmooth=null; S.kW=0; S.p1=S.p2=S.q=0;
+  S.solenoid=true; refreshSol();
+  document.getElementById('btnStart').disabled=true;
+  document.getElementById('btnStop').disabled=false;
+  setBadge('RUNNING','running');
+  document.getElementById('supplyFlow1').classList.remove('off');
+  document.getElementById('funnelFlow').style.opacity='1';
+  clearCharts();
+  log('══ Test started ══','info');
+  log(`Mode:${S.mode==='constant'?'Constant Head':'Falling Head'} | Soil:${S.soil.replace(/_/g,' ')}`,'info');
+  log(`h₀=${S.h0}mm | k_ref=${S.k.toExponential(2)} m/s`);
+  S.iid=setInterval(tick,500);
+  startParts();
+}
+function stopTest() {
+  if(!S.running)return;
+  S.running=false;
+  clearInterval(S.iid); S.iid=null;
+  stopParts();
+  document.getElementById('btnStart').disabled=false;
+  document.getElementById('btnStop').disabled=true;
+  setBadge('COMPLETE','complete');
+  document.getElementById('supplyFlow1').classList.add('off');
+  document.getElementById('funnelFlow').style.opacity='0';
+  log('══ Test stopped ══','warn');
+  if(S.kSmooth!==null){
+    log(`k(avg)=${S.kSmooth.toExponential(3)} m/s | mass=${S.mass.toFixed(1)}g | t=${S.t}s`,'info');
+    log(`Ref k(${S.soil.replace(/_/g,' ')})=${S.k.toExponential(2)} m/s`);
+  }
+}
+function resetAll() {
+  if(S.running)stopTest(); stopParts();
+  S.t=0;S.mass=0;S.h=S.h0;S.p1=S.p2=S.q=0;S.kSmooth=null;S.kW=0;
+  ['valP1','valP2'].forEach(id=>document.getElementById(id).textContent='0.00');
+  ['valHead','valMass','valFlow'].forEach(id=>document.getElementById(id).textContent='0.0');
+  document.getElementById('valTime').textContent='0';
+  document.getElementById('valK').textContent='—';
+  document.getElementById('valKUnit').textContent='m/s';
+  ['cardP1','cardP2','cardHead','cardMass','cardFlow','cardTime'].forEach(id=>
+    document.getElementById(id).classList.remove('on'));
+  setBadge('IDLE','idle');
+  clearCharts();
+  const wa=document.getElementById('waterAbove');
+  wa.setAttribute('y','197'); wa.setAttribute('height','0');
+  document.getElementById('waterSurface').setAttribute('opacity','0');
+  document.getElementById('beakerLevel').setAttribute('height','0');
+  document.getElementById('beakerLevel').setAttribute('y','472');
+  log('System reset.','info');
+}
+function setBadge(text,cls) {
+  const el=document.getElementById('statusBadge');
+  el.textContent=text; el.className=`badge ${cls}`;
+}
+
+/* ══ TICK ══ */
+function tick() {
+  if(!S.running)return;
+  S.t++;
+  const h_m=S.h/1000, n=1+(Math.random()-.5)*.08;
+  const Q=S.k*COL_A*(h_m/COL_L)*n;
+  S.q=Q*1e6;
+  const nm=S.mass+S.q;
+  if(nm>=BMAX&&S.mass<BMAX)log('⚠ Beaker full!','warn');
+  S.mass=Math.min(nm,BMAX);
+  S.p1=RHO*G*(h_m+.10)/1000*n;
+  S.p2=RHO*G*.015/1000*(1+(Math.random()-.5)*.05);
+  if(S.mode==='falling'){
+    S.h=Math.max(S.h-S.k*(h_m/COL_L)*1000,2);
+    if(S.h<=3){log('Falling head complete.','warn');stopTest();return;}
+  }
+  let ki=null;
+  if(h_m>.001){
+    ki=S.mode==='constant'?(Q*COL_L)/(COL_A*h_m):
+       (S.t>1?(COL_L/S.t)*Math.log(S.h0/1000/h_m):null);
+  }
+  if(ki&&ki>0){
+    S.kW++;
+    S.kSmooth=S.kSmooth===null?ki:S.kSmooth+(1/S.kW)*(ki-S.kSmooth);
+  }
+  updateVis(); updateUI();
+  const dP=Math.max(0,S.p1-S.p2);
+  push(PC,S.t+'s',+dP.toFixed(3));
+  push(MC,S.t+'s',+S.mass.toFixed(1));
+  if(S.t%10===0)
+    log(`t=${S.t}s | h=${S.h.toFixed(1)}mm | ΔP=${dP.toFixed(2)}kPa | Q=${S.q.toFixed(3)}mL/s | m=${S.mass.toFixed(1)}g`);
+}
+
+function updateUI() {
+  document.getElementById('valP1').textContent  =S.p1.toFixed(2);
+  document.getElementById('valP2').textContent  =S.p2.toFixed(2);
+  document.getElementById('valHead').textContent=S.h.toFixed(1);
+  document.getElementById('valMass').textContent=S.mass.toFixed(1);
+  document.getElementById('valFlow').textContent=S.q.toFixed(3);
+  document.getElementById('valTime').textContent=S.t;
+  if(S.kSmooth!==null){
+    document.getElementById('valK').textContent    =S.kSmooth.toExponential(3);
+    document.getElementById('valKUnit').textContent='m/s';
+  }
+  ['cardP1','cardP2','cardHead','cardMass','cardFlow','cardTime'].forEach(id=>
+    document.getElementById(id).classList.add('on'));
+}
+function updateVis() {
+  const frac=Math.min(S.h/300,1);
+  const ty=197-frac*97, ht=197-ty;
+  const wa=document.getElementById('waterAbove');
+  wa.setAttribute('y',ty.toFixed(1)); wa.setAttribute('height',Math.max(0,ht).toFixed(1));
+  const sf=document.getElementById('waterSurface');
+  sf.setAttribute('cy',ty.toFixed(1)); sf.setAttribute('opacity',ht>1?'0.6':'0');
+  const fH=Math.min(S.mass/BMAX,1)*54;
+  const bl=document.getElementById('beakerLevel');
+  bl.setAttribute('y',(472-fH).toFixed(1)); bl.setAttribute('height',fH.toFixed(1));
+}
+
+/* ══ PARTICLES ══ */
+const DT=new Set();
+function startParts(){
+  stopParts();
+  S.pid=setInterval(()=>{
+    if(!S.running)return;
+    const g=document.getElementById('waterParticles');
+    const d=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    d.setAttribute('cx',(193+Math.random()*20).toFixed(1));
+    d.setAttribute('cy','355');
+    d.setAttribute('r',(1.5+Math.random()).toFixed(1));
+    d.setAttribute('fill','#58a6ff');
+    d.setAttribute('opacity','0.9');
+    g.appendChild(d);
+    let y=355,op=0.9;
+    const tid=setInterval(()=>{
+      y+=3.5; op-=.07;
+      d.setAttribute('cy',y.toFixed(1));
+      d.setAttribute('opacity',Math.max(0,op).toFixed(2));
+      if(y>418||op<=0){clearInterval(tid);DT.delete(tid);if(d.parentNode)d.parentNode.removeChild(d);}
+    },35);
+    DT.add(tid);
+  },180);
+}
+function stopParts(){
+  if(S.pid){clearInterval(S.pid);S.pid=null;}
+  DT.forEach(t=>clearInterval(t));DT.clear();
+  const g=document.getElementById('waterParticles');
+  if(g)while(g.firstChild)g.removeChild(g.firstChild);
+}
+
+/* ══ INIT ══ */
+setSoil(); refreshSol();
+log('System initialised — ESP32 online.','info');
+log('Sensors: MPX5010DP ×2 | HX711 5kg | 12V solenoid','info');
+log('Set parameters and press ▶ Start.','info');
+</script>
+</body>
+</html>
