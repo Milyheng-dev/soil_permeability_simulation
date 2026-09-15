@@ -1,0 +1,2156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Variable Head Soil Permeability — 2026 World Skills SEA</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+/* ═══════════════════════════════════
+   BASE
+═══════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  font-family:'Segoe UI',system-ui,sans-serif;
+  background:#07091c;color:#e8eaf6;
+  display:flex;flex-direction:column;min-height:100vh;
+  overflow-x:hidden;
+}
+/* ═══════════════════════════════════
+   HEADER
+═══════════════════════════════════ */
+.hdr{
+  background:linear-gradient(135deg,#0a0d2e 0%,#111a5e 55%,#0a0d2e 100%);
+  border-bottom:2.5px solid #d4900a;
+  flex-shrink:0;
+}
+.hdr-top{display:flex;align-items:center;gap:12px;padding:10px 20px;}
+.hdr-logo{
+  width:44px;height:44px;flex-shrink:0;
+  background:radial-gradient(circle at 35% 35%,#ffe082,#d4700a);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:22px;box-shadow:0 0 18px #d4900a55;
+}
+.hdr-text{flex:1;min-width:0;}
+.hdr-text h1{font-size:.93rem;font-weight:700;color:#fff;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.hdr-text p{font-size:.64rem;color:#d4900a;margin-top:1px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.badge{
+  flex-shrink:0;padding:5px 13px;border-radius:20px;
+  font-size:.68rem;font-weight:700;letter-spacing:.06em;
+  transition:all .35s;white-space:nowrap;
+}
+.badge.idle    {background:#10143a;color:#7986cb;border:1px solid #3f51b5;}
+.badge.exhaust {background:#1c1300;color:#ffd54f;border:1px solid #f9a825;}
+.badge.saturate{background:#001220;color:#4fc3f7;border:1px solid #0288d1;}
+.badge.running {background:#001a08;color:#69f0ae;border:1px solid #00c853;}
+.badge.complete{background:#1a0e00;color:#ffab40;border:1px solid #ef6c00;}
+.badge.saving  {background:#140020;color:#ea80fc;border:1px solid #aa00ff;}
+
+.hdr-strip{
+  background:#0c1040;border-top:1px solid #1e2a8044;
+  padding:4px 20px;display:flex;align-items:center;gap:16px;
+  font-size:.6rem;color:#7986cb;white-space:nowrap;overflow:hidden;
+}
+.hdr-strip b{color:#d4900a;}
+
+/* ═══════════════════════════════════
+   PHASE BAR
+═══════════════════════════════════ */
+.phase-bar{
+  background:#0a0d2e;border-bottom:1px solid #1a237e44;
+  padding:7px 20px;display:flex;align-items:center;
+  gap:0;flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch;
+}
+.ps{display:flex;align-items:center;gap:0;flex-shrink:0;}
+.pd{width:28px;height:28px;border-radius:50%;
+  border:2px solid #283593;background:#07091c;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.62rem;font-weight:700;color:#3f51b5;transition:all .4s;}
+.pd.done  {background:#00c853;border-color:#00c853;color:#fff;}
+.pd.active{background:#d4900a;border-color:#d4900a;color:#000;
+  box-shadow:0 0 12px #d4900a88;}
+.pl{font-size:.58rem;color:#3f51b5;margin:0 7px;transition:color .4s;white-space:nowrap;}
+.pl.active{color:#d4900a;font-weight:700;}
+.pl.done{color:#00c853;}
+.pa{color:#1a237e;font-size:.75rem;margin:0 2px;flex-shrink:0;}
+
+/* ═══════════════════════════════════
+   TABS (phone)
+═══════════════════════════════════ */
+.tabs{display:none;background:#0a0d2e;border-bottom:1px solid #1a237e;flex-shrink:0;}
+.tabs button{flex:1;padding:10px 4px;background:none;border:none;
+  border-bottom:2px solid transparent;color:#3f51b5;
+  font-size:.72rem;font-weight:600;cursor:pointer;transition:.2s;}
+.tabs button.on{color:#d4900a;border-bottom-color:#d4900a;}
+
+/* ═══════════════════════════════════
+   MAIN LAYOUT
+═══════════════════════════════════ */
+.app{flex:1;display:grid;grid-template-columns:260px 1fr 310px;
+  overflow:hidden;min-height:0;}
+.col{padding:10px;overflow-y:auto;display:flex;flex-direction:column;gap:9px;
+  -webkit-overflow-scrolling:touch;}
+.col-left {border-right:1px solid #1a237e33;}
+.col-right{border-left: 1px solid #1a237e33;}
+.col-mid{background:#050714;display:flex;flex-direction:column;
+  align-items:center;overflow-y:auto;padding:8px 4px;}
+
+/* ═══════════════════════════════════
+   CARDS
+═══════════════════════════════════ */
+.card{background:#0d1245;border:1px solid #1e2a80;border-radius:10px;
+  padding:11px;flex-shrink:0;}
+.card.gold-b{border-color:#d4900a;}
+.card h3{font-size:.64rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.1em;color:#8c9eff;margin-bottom:9px;
+  display:flex;align-items:center;gap:6px;}
+.card h3::before{content:'';display:inline-block;
+  width:3px;height:10px;background:#d4900a;border-radius:2px;}
+
+/* ═══════════════════════════════════
+   FORM ELEMENTS
+═══════════════════════════════════ */
+.lbl{display:block;font-size:.7rem;color:#8c9eff;margin-bottom:3px;}
+select{width:100%;background:#07091c;border:1px solid #1e2a80;
+  color:#e8eaf6;border-radius:6px;padding:6px 8px;
+  font-size:.72rem;margin-bottom:8px;cursor:pointer;outline:none;min-height:34px;}
+select:focus{border-color:#d4900a;}
+input[type=range]{width:100%;accent-color:#d4900a;background:transparent;
+  border:none;margin-bottom:2px;cursor:pointer;height:20px;}
+.rh{display:flex;justify-content:space-between;
+  font-size:.62rem;color:#3f51b5;margin-bottom:7px;}
+
+/* ═══════════════════════════════════
+   BUTTONS
+═══════════════════════════════════ */
+.btn-row{display:flex;gap:6px;flex-wrap:wrap;}
+.btn{flex:1;padding:8px 5px;border-radius:8px;border:none;
+  font-size:.72rem;font-weight:700;cursor:pointer;transition:.2s;
+  min-height:38px;min-width:60px;}
+.btn-g{background:linear-gradient(135deg,#d4900a,#b85e00);color:#fff;}
+.btn-g:hover{filter:brightness(1.12);}
+.btn-r{background:linear-gradient(135deg,#c62828,#e53935);color:#fff;}
+.btn-r:hover{filter:brightness(1.12);}
+.btn-b{background:linear-gradient(135deg,#1565c0,#1e88e5);color:#fff;}
+.btn-b:hover{filter:brightness(1.1);}
+.btn-d{background:#131d5c;color:#8c9eff;border:1px solid #1e2a80;}
+.btn-d:hover{background:#1e2a80;color:#e8eaf6;}
+.btn:disabled{opacity:.3;cursor:not-allowed;}
+
+/* ═══════════════════════════════════
+   STATUS ROWS
+═══════════════════════════════════ */
+.stat-row{display:flex;align-items:center;gap:8px;
+  font-size:.7rem;margin-bottom:5px;}
+.sd{width:10px;height:10px;border-radius:50%;flex-shrink:0;
+  background:#333;transition:all .4s;}
+.sk{color:#8c9eff;}
+.sv2{color:#e8eaf6;font-weight:600;margin-left:auto;font-size:.68rem;}
+.sd.on-g{background:#69f0ae;box-shadow:0 0 6px #69f0ae;}
+.sd.on-b{background:#4fc3f7;box-shadow:0 0 6px #4fc3f7;}
+.sd.on-y{background:#ffd54f;box-shadow:0 0 6px #ffd54f;}
+.sd.on-p{background:#ce93d8;box-shadow:0 0 6px #ce93d8;}
+
+/* ═══════════════════════════════════
+   SENSOR CARDS
+═══════════════════════════════════ */
+.sensors{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.sc{background:#07091c;border:1px solid #1e2a80;border-radius:8px;
+  padding:8px;text-align:center;transition:border-color .3s;}
+.sc.on{border-color:#d4900a;box-shadow:0 0 7px #d4900a22;}
+.sc .sl{font-size:.56rem;text-transform:uppercase;letter-spacing:.05em;
+  color:#5c6bc0;margin-bottom:2px;}
+.sc .sv{font-size:1.05rem;font-weight:800;color:#d4900a;
+  font-variant-numeric:tabular-nums;}
+.sc .su{font-size:.56rem;color:#5c6bc0;}
+
+/* ═══════════════════════════════════
+   RESULT
+═══════════════════════════════════ */
+.res-main{background:#07091c;border:2px solid #d4900a;border-radius:10px;
+  padding:12px;text-align:center;margin-bottom:8px;}
+.res-main .rl{font-size:.62rem;color:#8c9eff;margin-bottom:2px;}
+.res-main .rv{font-size:1.55rem;font-weight:900;color:#d4900a;
+  font-variant-numeric:tabular-nums;}
+.res-main .ru{font-size:.62rem;color:#8c9eff;}
+.res-sub{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.rs{background:#07091c;border:1px solid #1e2a80;border-radius:6px;
+  padding:7px;text-align:center;}
+.rs .rsl{font-size:.56rem;color:#5c6bc0;}
+.rs .rsv{font-size:.9rem;font-weight:700;color:#4fc3f7;}
+.formula-box{background:#07091c;border:1px solid #1e2a80;
+  border-radius:8px;padding:9px;text-align:center;margin-top:7px;}
+.formula-box .f1{font-size:.76rem;color:#d4900a;font-weight:700;
+  font-family:'Courier New',monospace;margin-bottom:2px;}
+.formula-box .f2{font-size:.69rem;color:#4fc3f7;font-family:'Courier New',monospace;}
+
+/* ═══════════════════════════════════
+   SPEC TABLE
+═══════════════════════════════════ */
+.spec{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:.68rem;}
+.spec .k{color:#5c6bc0;}.spec .v{color:#c5cae9;font-weight:500;}
+
+/* ═══════════════════════════════════
+   ETA TABLE
+═══════════════════════════════════ */
+.ttw{max-height:110px;overflow-y:auto;border-radius:6px;
+  border:1px solid #1e2a80;-webkit-overflow-scrolling:touch;}
+.tt{width:100%;border-collapse:collapse;font-size:.59rem;}
+.tt th{background:#131d5c;color:#d4900a;padding:4px 5px;
+  text-align:center;position:sticky;top:0;z-index:1;}
+.tt td{padding:3px 5px;text-align:center;color:#8c9eff;
+  border-bottom:1px solid #1a237e22;}
+.tt tr.hl td{background:#1a237e44;color:#d4900a;font-weight:700;}
+
+/* CHART & LOG */
+.chart-box{background:#07091c;border:1px solid #1e2a80;border-radius:8px;padding:8px;}
+canvas.ch{max-height:110px !important;}
+.log{background:#07091c;border:1px solid #1e2a80;border-radius:8px;
+  padding:8px;font-family:'Cascadia Code','Courier New',monospace;
+  font-size:.61rem;color:#69f0ae;height:100px;
+  overflow-y:auto;line-height:1.65;-webkit-overflow-scrolling:touch;}
+.log .lt{color:#3f51b5;}.log .lw{color:#d4900a;}.log .li{color:#4fc3f7;}.log .le{color:#ef5350;}
+
+/* SVG title */
+.mid-title{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;
+  color:#3f51b5;text-align:center;margin-bottom:4px;flex-shrink:0;}
+#svgwrap{width:100%;display:flex;justify-content:center;flex-shrink:0;}
+#asvg{width:100%;max-width:780px;height:auto;}
+
+/* ═══════════════════════════════════
+   SVG ANIMATIONS
+═══════════════════════════════════ */
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.15;}}
+.led{animation:pulse .9s ease-in-out infinite;}
+.led-fast{animation:pulse .4s ease-in-out infinite;}
+@keyframes flow{to{stroke-dashoffset:-20;}}
+.fl{stroke-dasharray:7 4;animation:flow .38s linear infinite;}
+.fl.off{animation-play-state:paused;}
+@keyframes surf{0%,100%{ry:4;}50%{ry:7;}}
+#wSurf{animation:surf 1.4s ease-in-out infinite;}
+@keyframes laser-blink{0%,100%{opacity:.9;}50%{opacity:.2;}}
+.lbeam{animation:laser-blink .55s ease-in-out infinite;}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+#pumpBlade{transform-origin:320px 253px;animation:spin .9s linear infinite;}
+#pumpBlade.off{animation-play-state:paused;}
+
+/* ═══════════════════════════════════
+   RESPONSIVE — TABLET 600–1023px
+═══════════════════════════════════ */
+@media(max-width:1023px){
+  .app{display:grid;grid-template-columns:220px 1fr;
+    grid-template-rows:auto auto;
+    grid-template-areas:"left mid" "data data";
+    overflow:visible;height:auto;}
+  .col-left{grid-area:left;overflow-y:visible;border-bottom:1px solid #1a237e33;}
+  .col-mid{grid-area:mid;overflow-y:visible;border-bottom:1px solid #1a237e33;min-height:500px;}
+  .col-right{grid-area:data;overflow-y:visible;border-left:none;}
+  .data-inner{display:grid;grid-template-columns:1fr 1fr;gap:9px;padding:10px;}
+  .c-full{grid-column:1/-1;}
+  .sensors{grid-template-columns:repeat(3,1fr);}
+  canvas.ch{max-height:120px !important;}
+}
+/* ═══════════════════════════════════
+   RESPONSIVE — PHONE <600px
+═══════════════════════════════════ */
+@media(max-width:599px){
+  .hdr-text p,.hdr-strip{display:none;}
+  .hdr-text h1{font-size:.8rem;}.hdr-top{padding:7px 12px;}
+  .badge{font-size:.62rem;padding:3px 8px;}
+  .phase-bar{padding:5px 10px;}.pl{display:none;}
+  .tabs{display:flex;}
+  .app{display:block;height:auto;overflow:visible;}
+  .col-left,.col-mid,.col-right{display:none;border:none !important;
+    padding:8px;overflow-y:visible;}
+  .col-left.on,.col-right.on{display:flex;flex-direction:column;gap:9px;}
+  .col-mid.on{display:flex;flex-direction:column;align-items:center;padding:8px 4px;}
+  .data-inner{display:flex;flex-direction:column;gap:9px;padding:0;}
+  #asvg{max-width:100%;}
+  canvas.ch{max-height:135px !important;}
+  .sensors{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:380px){
+  .sc .sv{font-size:.9rem;}.res-main .rv{font-size:1.2rem;}.card{padding:9px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ════ HEADER ════ -->
+<header class="hdr">
+  <div class="hdr-top">
+    <div class="hdr-logo">💧</div>
+    <div class="hdr-text">
+      <h1>Automatic Apparatus — Variable Head Soil Permeability Coefficient</h1>
+      <p>2026 World Vocational College Skills Competition Southeast Asia · Next-Generation IT Track</p>
+    </div>
+    <span class="badge idle" id="statusBadge">IDLE</span>
+  </div>
+  <div class="hdr-strip">
+    <b>STM32/CH32</b> Controller &nbsp;│&nbsp;
+    <b>Laser Sensor</b> ±1mm 0.1mm res &nbsp;│&nbsp;
+    <b>TST-55</b> Permeameter &nbsp;│&nbsp;
+    <b>3 Level Sensors</b> Auto water management &nbsp;│&nbsp;
+    <b>K_T = 2.3·(aL/AΔt)·lg(H₁/H₂)</b> &nbsp;│&nbsp;
+    <b>K₂₀ = K_T·η_T/η₂₀</b>
+  </div>
+</header>
+
+<!-- ════ PHASE BAR ════ -->
+<div class="phase-bar">
+  <div class="ps"><div class="pd" id="pd0">1</div><span class="pl" id="pl0">Load Sample</span></div>
+  <span class="pa">›</span>
+  <div class="ps"><div class="pd" id="pd1">2</div><span class="pl" id="pl1">Exhaust Air</span></div>
+  <span class="pa">›</span>
+  <div class="ps"><div class="pd" id="pd2">3</div><span class="pl" id="pl2">Saturation</span></div>
+  <span class="pa">›</span>
+  <div class="ps"><div class="pd" id="pd3">4</div><span class="pl" id="pl3">Fill to H₁</span></div>
+  <span class="pa">›</span>
+  <div class="ps"><div class="pd" id="pd4">5</div><span class="pl" id="pl4">Measurement</span></div>
+  <span class="pa">›</span>
+  <div class="ps"><div class="pd" id="pd5">6</div><span class="pl" id="pl5">Save Results</span></div>
+</div>
+
+<!-- ════ TABS (phone) ════ -->
+<nav class="tabs" id="tabBar">
+  <button class="on" onclick="tab('left')">⚙ Params</button>
+  <button onclick="tab('mid')">🔬 Apparatus</button>
+  <button onclick="tab('right')">📊 Results</button>
+</nav>
+
+<!-- ════ APP ════ -->
+<div class="app">
+
+  <!-- ══ LEFT — Parameters ══ -->
+  <div class="col col-left on" id="colLeft">
+
+    <div class="card gold-b">
+      <h3>Test Parameters</h3>
+      <label class="lbl">Soil Sample</label>
+      <select id="soilType" onchange="setSoil()">
+        <option value="gravel">Gravel  (k ≈ 1×10⁻² cm/s)</option>
+        <option value="coarse_sand" selected>Coarse Sand  (k ≈ 1×10⁻³ cm/s)</option>
+        <option value="medium_sand">Medium Sand  (k ≈ 1×10⁻⁴ cm/s)</option>
+        <option value="fine_sand">Fine Sand  (k ≈ 1×10⁻⁵ cm/s)</option>
+        <option value="silt">Silt  (k ≈ 1×10⁻⁶ cm/s)</option>
+        <option value="clay">Clay  (k ≈ 1×10⁻⁷ cm/s)</option>
+      </select>
+
+      <label class="lbl">Temperature T: <b id="td">20.0</b> °C</label>
+      <input type="range" id="tSlider" min="5" max="35" step="0.5" value="20" oninput="setT(+this.value)">
+      <div class="rh"><span>5°C</span><span>35°C</span></div>
+
+      <label class="lbl">Initial Head H₁: <b id="h1d">700</b> mm</label>
+      <input type="range" id="h1Slider" min="200" max="1000" value="700"
+        oninput="P.H1=+this.value;document.getElementById('h1d').textContent=this.value">
+      <div class="rh"><span>200 mm</span><span>1000 mm</span></div>
+
+      <label class="lbl">Final Head H₂: <b id="h2d">200</b> mm</label>
+      <input type="range" id="h2Slider" min="50" max="600" value="200"
+        oninput="P.H2=+this.value;document.getElementById('h2d').textContent=this.value">
+      <div class="rh"><span>50 mm</span><span>600 mm</span></div>
+
+      <label class="lbl">Standpipe Area a: <b id="ad">1.77</b> cm²</label>
+      <input type="range" id="aSlider" min="0.5" max="5" step="0.01" value="1.77"
+        oninput="P.a=+this.value;document.getElementById('ad').textContent=(+this.value).toFixed(2)">
+      <div class="rh"><span>0.5 cm²</span><span>5.0 cm²</span></div>
+
+      <label class="lbl">Number of Tests:</label>
+      <select id="numTests">
+        <option value="3">3 measurements</option>
+        <option value="5" selected>5 measurements</option>
+        <option value="10">10 measurements</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <h3>Process Controls</h3>
+      <div class="btn-row" style="margin-bottom:6px">
+        <button class="btn btn-g" id="btnStart" onclick="startProcess()">▶ Start</button>
+        <button class="btn btn-r" id="btnStop"  onclick="stopProcess()" disabled>■ Stop</button>
+        <button class="btn btn-d" onclick="resetAll()">↺ Reset</button>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-b" id="btnSkip" onclick="advPhase()" disabled>⏭ Skip Phase</button>
+        <button class="btn btn-d" id="btnSave" onclick="saveResults()" disabled>💾 Save CSV</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Hardware Status</h3>
+      <div class="stat-row">
+        <div class="sd" id="dPump"></div><span class="sk">Injection Pump</span>
+        <span class="sv2" id="tPump" style="color:#ef5350">OFF</span>
+      </div>
+      <div class="stat-row">
+        <div class="sd" id="dAir"></div><span class="sk">Air Vent Valve</span>
+        <span class="sv2" id="tAir" style="color:#ef5350">CLOSED</span>
+      </div>
+      <div class="stat-row">
+        <div class="sd" id="dInlet"></div><span class="sk">Inlet Valve</span>
+        <span class="sv2" id="tInlet" style="color:#ef5350">CLOSED</span>
+      </div>
+      <div class="stat-row">
+        <div class="sd" id="dWinj"></div><span class="sk">Water Inj. Valve</span>
+        <span class="sv2" id="tWinj" style="color:#ef5350">CLOSED</span>
+      </div>
+      <div class="stat-row">
+        <div class="sd" id="dLaser"></div><span class="sk">Laser Sensor</span>
+        <span class="sv2" id="tLaser" style="color:#ef5350">STANDBY</span>
+      </div>
+      <div style="margin-top:8px;padding-top:7px;border-top:1px solid #1e2a80">
+        <div class="stat-row">
+          <div class="sd" id="dLS1"></div><span class="sk">Level Sensor 1</span>
+          <span class="sv2" id="tLS1" style="color:#ef5350">NO WATER</span>
+        </div>
+        <div class="stat-row">
+          <div class="sd" id="dLS2"></div><span class="sk">Level Sensor 2</span>
+          <span class="sv2" id="tLS2" style="color:#ef5350">NO WATER</span>
+        </div>
+        <div class="stat-row">
+          <div class="sd" id="dLS3"></div><span class="sk">Level Sensor 3</span>
+          <span class="sv2" id="tLS3" style="color:#5c6bc0">NORMAL</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Specimen (TST-55)</h3>
+      <div class="spec">
+        <span class="k">Diameter</span><span class="v">61.8 mm</span>
+        <span class="k">Height L</span><span class="v">40 mm = 4.0 cm</span>
+        <span class="k">Area A</span>  <span class="v">30.0 cm²</span>
+        <span class="k">Standpipe a</span><span class="v" id="specA">1.77 cm²</span>
+        <span class="k">Controller</span><span class="v">STM32 / CH32</span>
+        <span class="k">Communication</span><span class="v">RS-485</span>
+        <span class="k">Storage</span><span class="v">FLASH 55,188 rec</span>
+      </div>
+    </div>
+
+  </div><!-- /col-left -->
+
+  <!-- ══ MID — SVG ══ -->
+  <div class="col-mid" id="colMid">
+    <p class="mid-title">⚗ Variable Head Permeameter — Live Simulation</p>
+    <div id="svgwrap">
+<!-- SVG rebuilt to match reference photo exactly -->
+<svg id="asvg" viewBox="0 0 780 680" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <!-- ══ GRADIENTS ══ -->
+  <!-- Clear water blue -->
+  <linearGradient id="wG" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%"   stop-color="#4fc3f7" stop-opacity=".78"/>
+    <stop offset="100%" stop-color="#0277bd" stop-opacity=".92"/>
+  </linearGradient>
+  <!-- Lighter water for tanks -->
+  <linearGradient id="wGLight" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%"   stop-color="#81d4fa" stop-opacity=".7"/>
+    <stop offset="100%" stop-color="#039be5" stop-opacity=".85"/>
+  </linearGradient>
+  <linearGradient id="wG2" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%"   stop-color="#80deea" stop-opacity=".65"/>
+    <stop offset="100%" stop-color="#00838f" stop-opacity=".8"/>
+  </linearGradient>
+  <!-- Soil gradient -->
+  <linearGradient id="soilG" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%"   stop-color="#8B6914"/>
+    <stop offset="50%"  stop-color="#6B4F10"/>
+    <stop offset="100%" stop-color="#3e2808"/>
+  </linearGradient>
+  <!-- Glass tube (acrylic/transparent) -->
+  <linearGradient id="glassG" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0%"   stop-color="#0a1835" stop-opacity=".8"/>
+    <stop offset="20%"  stop-color="#1a3a6a" stop-opacity=".1"/>
+    <stop offset="80%"  stop-color="#1a3a6a" stop-opacity=".1"/>
+    <stop offset="100%" stop-color="#0a1835" stop-opacity=".8"/>
+  </linearGradient>
+  <!-- Metal / stainless -->
+  <linearGradient id="metalG" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%"   stop-color="#b0bec5"/>
+    <stop offset="50%"  stop-color="#78909c"/>
+    <stop offset="100%" stop-color="#546e7a"/>
+  </linearGradient>
+  <!-- Dark plastic body -->
+  <linearGradient id="bodyG" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%"   stop-color="#1a1a2e"/>
+    <stop offset="100%" stop-color="#0d0d1a"/>
+  </linearGradient>
+  <!-- PCB green -->
+  <linearGradient id="pcbG" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%"   stop-color="#1b5e20"/>
+    <stop offset="100%" stop-color="#0a2e0f"/>
+  </linearGradient>
+  <!-- Tank body -->
+  <linearGradient id="tankG" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%"   stop-color="#1a237e" stop-opacity=".8"/>
+    <stop offset="100%" stop-color="#0d1245" stop-opacity=".95"/>
+  </linearGradient>
+
+  <!-- Clip paths -->
+  <clipPath id="tubeClip"><rect x="197" y="55" width="26" height="320"/></clipPath>
+  <clipPath id="pmClip">  <rect x="155" y="440" width="130" height="90"/></clipPath>
+  <clipPath id="bkClip">  <polygon points="188,565 252,565 260,610 180,610"/></clipPath>
+
+  <!-- Glow filters -->
+  <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+    <feGaussianBlur stdDeviation="3" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="glowS" x="-50%" y="-50%" width="200%" height="200%">
+    <feGaussianBlur stdDeviation="2" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+    <feDropShadow dx="2" dy="3" stdDeviation="4" flood-color="#000" flood-opacity=".6"/>
+  </filter>
+</defs>
+
+<!-- ══════════════════════════════════════════════════════════
+     PHOTO-ACCURATE APPARATUS — matches reference image exactly
+     
+     LAYOUT (780×680 viewBox):
+     Col A x=0-130:   Laser Sensor + Standpipe labels
+     Col B x=130-290: Standpipe (glass tube) + Float + ruler
+     Col C x=290-510: Pipes + Tee + Valves + Permeameter
+     Col D x=510-660: Balancing Water Tank (top) + Soil inset
+     Col E x=660-780: Water Injection Pump + Water Storage Tank
+     
+     Pipe routing (matches blue pipes in photo):
+     - Balancing tank → down → left → standpipe top (fill)
+     - Permeameter bottom → Water Outlet Hole
+     - Storage tank → up → right → pump → up → balancing tank
+══════════════════════════════════════════════════════════ -->
+
+<!-- ██ BACKGROUND ██ -->
+<rect width="780" height="680" fill="#080a1c"/>
+<g stroke="#0c1035" stroke-width=".7" opacity=".4">
+  <line x1="0" y1="170" x2="780" y2="170"/><line x1="0" y1="340" x2="780" y2="340"/>
+  <line x1="0" y1="510" x2="780" y2="510"/><line x1="195" y1="0" x2="195" y2="680"/>
+  <line x1="390" y1="0" x2="390" y2="680"/><line x1="585" y1="0" x2="585" y2="680"/>
+</g>
+
+<!-- ══════════════════════════════════
+     FAR RIGHT — WATER STORAGE TANK
+     Large rounded-shoulder bottle shape
+     matching the photo (big blue bottle)
+══════════════════════════════════════ -->
+<g filter="url(#shadow)">
+  <!-- Bottle shoulder top -->
+  <path d="M660 120 Q660 80 700 75 L745 75 Q780 75 780 120 L780 550 Q780 590 740 595 L700 595 Q660 595 660 550 Z"
+        fill="#0d2a3a" stroke="#0e4d6e" stroke-width="2.5"/>
+  <!-- Water fill inside bottle -->
+  <rect id="stoWater" x="663" y="300" width="114" height="292" rx="4"
+        fill="url(#wGLight)" opacity=".72"/>
+  <ellipse cx="720" cy="300" rx="57" ry="7" fill="#4fc3f7" opacity=".4"/>
+  <!-- Bottle neck -->
+  <rect x="698" y="55"  width="44" height="22" rx="6" fill="#1a3a4a" stroke="#1e6080" stroke-width="2"/>
+  <rect x="704" y="44"  width="32" height="14" rx="4" fill="#0e2a38" stroke="#0e4d6e" stroke-width="1.5"/>
+  <!-- Neck cap ring -->
+  <rect x="700" y="74"  width="40" height="5"  rx="2" fill="#37697d"/>
+  <!-- Bottle sheen left -->
+  <path d="M663 130 Q670 200 670 350 L663 350 Z" fill="#fff" opacity=".04"/>
+  <!-- Label area -->
+  <rect x="670" y="350" width="100" height="80" rx="4" fill="#0a2030" opacity=".5"/>
+</g>
+<!-- Tank labels -->
+<text x="720" y="395" text-anchor="middle" font-size="11" fill="#e8eaf6" font-family="sans-serif" font-weight="700">Water</text>
+<text x="720" y="411" text-anchor="middle" font-size="11" fill="#e8eaf6" font-family="sans-serif" font-weight="700">Storage</text>
+<text x="720" y="427" text-anchor="middle" font-size="11" fill="#e8eaf6" font-family="sans-serif" font-weight="700">Tank</text>
+<text x="720" y="610" text-anchor="middle" font-size="9"  fill="#5c6bc0" font-family="monospace">Water Stoction Tank</text>
+<!-- Level sensor 1 inside storage tank -->
+<rect x="748" y="480" width="5" height="28" rx="2" fill="#d4900a" opacity=".7"/>
+<circle id="ls1Led" cx="750" cy="475" r="5" fill="#ef5350" filter="url(#glowS)" class="led"/>
+
+<!-- ══════════════════════════════════
+     FAR RIGHT — WATER INJECTION PUMP
+     (circular gauge / pump, upper right)
+══════════════════════════════════════ -->
+<!-- Vertical pipe: storage tank neck up to pump -->
+<rect x="718" y="45" width="6" height="0" fill="#1e6080"/>
+<!-- The pump sits to the right, pipe connects storage neck to balancing tank -->
+<!-- Supply pipe: across top from pump output to balancing tank -->
+<rect x="540" y="48" width="178" height="8" rx="4" fill="#1a5a7a" stroke="#0e4d6e" stroke-width="1"/>
+<rect x="541" y="50" width="176" height="3" fill="#4fc3f7" opacity=".25"/>
+<!-- Animated water in supply pipe (top run) -->
+<line id="supTop" x1="716" y1="52" x2="542" y2="52"
+      stroke="#4fc3f7" stroke-width="4" class="fl off" opacity=".85"/>
+<!-- Pump body -->
+<g filter="url(#shadow)" transform="translate(735,100)">
+  <!-- Outer housing ring -->
+  <circle cx="0" cy="0" r="38" fill="#2d3a45" stroke="#455a64" stroke-width="2.5"/>
+  <circle cx="0" cy="0" r="30" fill="#1a2530" stroke="#37474f" stroke-width="1.5"/>
+  <!-- Spinning impeller -->
+  <g id="pumpBlade" class="off">
+    <line x1="0" y1="-20" x2="0"  y2="20"  stroke="#4fc3f7" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="-20" y1="0" x2="20" y2="0"   stroke="#4fc3f7" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="-14" y1="-14" x2="14" y2="14" stroke="#4fc3f7" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+    <line x1="-14" y1="14"  x2="14" y2="-14" stroke="#4fc3f7" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+  </g>
+  <!-- Centre hub -->
+  <circle cx="0" cy="0" r="6" fill="#263238" stroke="#37474f" stroke-width="1"/>
+  <!-- Status LED -->
+  <circle id="pumpLed" cx="24" cy="-24" r="6" fill="#ef5350" filter="url(#glowS)"/>
+  <!-- Pump nozzle right → storage -->
+  <rect x="34" y="-4" width="28" height="8" rx="3" fill="#455a64"/>
+  <!-- Pump nozzle top → supply pipe -->
+  <rect x="-4" y="-44" width="8" height="28" rx="3" fill="#455a64"/>
+</g>
+<text x="735" y="155" text-anchor="middle" font-size="8.5" fill="#8c9eff" font-family="monospace">Water</text>
+<text x="735" y="165" text-anchor="middle" font-size="8.5" fill="#8c9eff" font-family="monospace">Injection Pump</text>
+<!-- Pump to storage connection pipe (vertical) -->
+<rect x="763" y="100" width="8" height="200" rx="3" fill="#1a5a7a" stroke="#0e4d6e" stroke-width="1"/>
+<rect x="765" y="101" width="3" height="198" fill="#4fc3f7" opacity=".2"/>
+<!-- Animated water pump→storage -->
+<line id="pumpToStore" x1="767" y1="102" x2="767" y2="296"
+      stroke="#4fc3f7" stroke-width="4" class="fl off" opacity=".8"/>
+<!-- Arrow showing return flow -->
+<text x="773" y="200" font-size="10" fill="#4fc3f7" opacity=".6">↑</text>
+
+<!-- ══════════════════════════════════
+     TOP CENTRE — BALANCING WATER TANK
+     Transparent trapezoid/funnel shape
+     with open top and pipe coming out bottom
+══════════════════════════════════════ -->
+<g filter="url(#shadow)">
+  <!-- Tank walls (trapezoid, wider at top, transparent acrylic look) -->
+  <polygon points="430,30 560,30 548,170 442,170"
+           fill="#0a1e30" stroke="#1e6080" stroke-width="2.5" opacity=".9"/>
+  <!-- Water inside tank -->
+  <polygon id="balWater" points="432,80 558,80 547,170 443,170"
+           fill="url(#wGLight)" opacity=".75"/>
+  <!-- Water surface wave ellipse -->
+  <ellipse cx="495" cy="80" rx="63" ry="7" fill="#81d4fa" opacity=".5"/>
+  <!-- Tank top rim (open top) -->
+  <line x1="430" y1="30" x2="560" y2="30" stroke="#1e6080" stroke-width="2.5"/>
+  <!-- Inner pipe/overflow at top (return from top) -->
+  <rect x="480" y="22" width="28" height="12" rx="3" fill="#1a5a7a" stroke="#1e6080" stroke-width="1.5"/>
+  <!-- Sheen left wall -->
+  <line x1="432" y1="35" x2="444" y2="170" stroke="#fff" stroke-width="3" opacity=".06"/>
+  <!-- Tank clips / mounting corners -->
+  <rect x="425" y="26" width="14" height="10" rx="3" fill="#1e3a4a" stroke="#2a5a7a" stroke-width="1"/>
+  <rect x="551" y="26" width="14" height="10" rx="3" fill="#1e3a4a" stroke="#2a5a7a" stroke-width="1"/>
+</g>
+<!-- Balancing tank label -->
+<text x="495" y="115" text-anchor="middle" font-size="11" fill="#e8eaf6" font-family="sans-serif" font-weight="700">Balancing</text>
+<text x="495" y="131" text-anchor="middle" font-size="11" fill="#e8eaf6" font-family="sans-serif" font-weight="700">Water Tank</text>
+<text x="495" y="18"  text-anchor="middle" font-size="9"  fill="#8c9eff" font-family="monospace" font-weight="bold">Balancing Water Tank</text>
+<!-- Arrow at top showing inflow -->
+<line x1="494" y1="22" x2="494" y2="4" stroke="#4fc3f7" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+
+<!-- Level sensor 2 (balancing tank) -->
+<rect x="556" y="100" width="5" height="25" rx="2" fill="#d4900a" opacity=".7"/>
+<circle id="ls2Led" cx="558" cy="96" r="4.5" fill="#ef5350" filter="url(#glowS)" class="led"/>
+<text x="566" y="99"  font-size="7.5" fill="#8c9eff" font-family="monospace">LS2</text>
+<!-- Level sensor 3 upper limit -->
+<rect x="556" y="58"  width="5" height="15" rx="2" fill="#4fc3f7" opacity=".5"/>
+<circle id="ls3Led" cx="558" cy="54" r="4.5" fill="#4fc3f7" filter="url(#glowS)" opacity=".4"/>
+<text x="566" y="57"  font-size="7.5" fill="#8c9eff" font-family="monospace">LS3</text>
+
+<!-- Pipe: balancing tank bottom → going DOWN then LEFT to standpipe top -->
+<!-- Vertical down from tank bottom centre -->
+<rect x="488" y="170" width="10" height="60" rx="3" fill="#1a5a7a" stroke="#0e4d6e" stroke-width="1"/>
+<!-- Horizontal left pipe connecting to standpipe -->
+<rect x="212" y="226" width="280" height="10" rx="4" fill="#1a5a7a" stroke="#0e4d6e" stroke-width="1"/>
+<rect x="213" y="228" width="278" height="3"  rx="1" fill="#4fc3f7" opacity=".25"/>
+<!-- Animated supply water flowing left (filling standpipe) -->
+<line id="supH" x1="486" y1="231" x2="214" y2="231"
+      stroke="#4fc3f7" stroke-width="5" class="fl off" opacity=".85"/>
+<!-- Vertical down from supply pipe into standpipe top -->
+<rect x="205" y="180" width="10" height="50" rx="3" fill="#1a5a7a" stroke="#0e4d6e" stroke-width="1"/>
+<line id="supV" x1="210" y1="182" x2="210" y2="228"
+      stroke="#4fc3f7" stroke-width="5" class="fl off" opacity=".85"/>
+
+<!-- ══════════════════════════════════
+     LEFT COLUMN — STANDPIPE ASSEMBLY
+     Tall thin glass tube with float inside
+     Laser sensor pointing from far left
+══════════════════════════════════════ -->
+
+<!-- Support frame (two thin vertical rods) -->
+<rect x="195" y="168" width="7" height="330" rx="3" fill="#607d8b" opacity=".7"/>
+<rect x="228" y="168" width="7" height="330" rx="3" fill="#607d8b" opacity=".7"/>
+<!-- Frame top cross -->
+<rect x="192" y="164" width="46" height="8"  rx="3" fill="#607d8b" opacity=".8"/>
+<!-- Frame bottom cross -->
+<rect x="192" y="494" width="46" height="8"  rx="3" fill="#607d8b" opacity=".8"/>
+
+<!-- ── GLASS TUBE (standpipe) ── -->
+<!-- Outer glass walls (thick stroke = wall thickness) -->
+<rect x="200" y="172" width="30" height="324" rx="5"
+      fill="none" stroke="#1565c0" stroke-width="3.5"/>
+<!-- Glass fill (transparent blue-tinted acrylic) -->
+<rect x="204" y="175" width="22" height="318" rx="4"
+      fill="#04122a" opacity=".7"/>
+<!-- Left glass shine -->
+<rect x="205" y="177" width="5" height="314" rx="2.5"
+      fill="#fff" opacity=".07"/>
+<!-- Right glass shine -->
+<rect x="220" y="177" width="3" height="314" rx="1.5"
+      fill="#fff" opacity=".04"/>
+<!-- Top glass cap (entry fitting, silver metal) -->
+<rect x="196" y="165" width="38" height="10" rx="4" fill="#78909c" stroke="#90a4ae" stroke-width="1"/>
+<rect x="203" y="157" width="24" height="10" rx="3" fill="#546e7a" stroke="#607d8b" stroke-width="1"/>
+<!-- Bottom glass cap (exit fitting) -->
+<rect x="196" y="494" width="38" height="10" rx="4" fill="#78909c" stroke="#90a4ae" stroke-width="1"/>
+
+<!-- ── GRADUATED RULER on right side ── -->
+<!-- Scale: SVG y=178 = H1000mm, SVG y=490 = H0mm, range = 312px, 1mm = 0.312px -->
+<text x="246" y="183" font-size="8.5" fill="#d4900a" font-family="monospace" font-weight="bold">mm</text>
+<g font-size="7.5" fill="#5c6bc0" font-family="monospace">
+  <!-- Major ticks every 100mm -->
+  <line x1="230" y1="178" x2="244" y2="178" stroke="#d4900a"  stroke-width="2"/><text x="246" y="182">1000</text>
+  <line x1="230" y1="209" x2="240" y2="209" stroke="#8c9eff"  stroke-width="1.2"/><!-- 900 minor -->
+  <line x1="230" y1="240" x2="244" y2="240" stroke="#8c9eff"  stroke-width="1.5"/><text x="246" y="244">800</text>
+  <line x1="230" y1="271" x2="240" y2="271" stroke="#8c9eff"  stroke-width="1.2"/>
+  <line x1="230" y1="302" x2="244" y2="302" stroke="#8c9eff"  stroke-width="1.5"/><text x="246" y="306">600</text>
+  <line x1="230" y1="333" x2="240" y2="333" stroke="#8c9eff"  stroke-width="1.2"/>
+  <line x1="230" y1="365" x2="244" y2="365" stroke="#8c9eff"  stroke-width="1.5"/><text x="246" y="369">400</text>
+  <line x1="230" y1="396" x2="240" y2="396" stroke="#8c9eff"  stroke-width="1.2"/>
+  <line x1="230" y1="427" x2="244" y2="427" stroke="#8c9eff"  stroke-width="1.5"/><text x="246" y="431">200</text>
+  <line x1="230" y1="458" x2="240" y2="458" stroke="#8c9eff"  stroke-width="1.2"/>
+  <line x1="230" y1="490" x2="244" y2="490" stroke="#d4900a"  stroke-width="2"/><text x="246" y="494">0</text>
+</g>
+
+<!-- ── WATER INSIDE GLASS TUBE (dynamic) ── -->
+<rect id="tubeWater" x="205" y="390" width="22" height="100"
+      fill="url(#wG)" rx="3" clip-path="url(#tubeClip)" opacity=".9"/>
+<!-- Water surface (animated wave) -->
+<ellipse id="wSurf" cx="216" cy="390" rx="11" ry="4.5" fill="#81d4fa" opacity="0"/>
+
+<!-- ── FLOAT (red square on water surface — KEY visible feature) ── -->
+<!-- This is the red block the laser targets -->
+<rect id="floatRect" x="204" y="382" width="24" height="14" rx="3"
+      fill="#e53935" stroke="#ff8a80" stroke-width="2"/>
+<!-- Float label arrow (matching photo callout) -->
+<line id="floatArrow" x1="200" y1="389" x2="170" y2="389"
+      stroke="#e8eaf6" stroke-width="1.2"/>
+<rect x="100" y="383" width="68" height="12" rx="3"
+      fill="#07091c" stroke="#3f51b5" stroke-width="1"/>
+<text x="134" y="393" text-anchor="middle" font-size="8.5" fill="#e8eaf6" font-family="sans-serif">Float</text>
+
+<!-- Live head callout (moves with float) -->
+<rect id="hBox" x="100" y="355" width="92" height="18" rx="4"
+      fill="#0d1245" stroke="#d4900a" stroke-width="1.5"/>
+<text id="hTxt" x="146" y="368" text-anchor="middle"
+      font-size="10" fill="#d4900a" font-family="monospace" font-weight="bold">H = — mm</text>
+<line id="hLine" x1="192" y1="364" x2="204" y2="388"
+      stroke="#d4900a" stroke-width="1.5" stroke-dasharray="3,2"/>
+
+<!-- "Water head decreases" annotation (left side) -->
+<text x="62" y="280" text-anchor="middle" font-size="9" fill="#4fc3f7" font-family="sans-serif" font-weight="bold">Water head</text>
+<text x="62" y="293" text-anchor="middle" font-size="9" fill="#4fc3f7" font-family="sans-serif" font-weight="bold">decreases</text>
+<text x="62" y="306" text-anchor="middle" font-size="9" fill="#4fc3f7" font-family="sans-serif" font-weight="bold">with time</text>
+<text x="62" y="320" text-anchor="middle" font-size="9" fill="#4fc3f7" font-family="sans-serif">(H₁ → H₂)</text>
+<line x1="88" y1="330" x2="200" y2="390" stroke="#4fc3f7" stroke-width="1.2" stroke-dasharray="4,3" opacity=".6"/>
+<line x1="88" y1="330" x2="200" y2="450" stroke="#4fc3f7" stroke-width="1.2" stroke-dasharray="4,3" opacity=".4"/>
+
+<!-- Standpipe callout -->
+<text x="266" y="195" font-size="9" fill="#e8eaf6" font-family="sans-serif" font-weight="bold">Standpipe</text>
+<text x="266" y="208" font-size="9" fill="#8c9eff" font-family="sans-serif">(with float)</text>
+<line x1="263" y1="203" x2="234" y2="220" stroke="#e8eaf6" stroke-width="1.2"/>
+
+<!-- ══════════════════════════════════
+     LASER SENSOR ASSEMBLY
+     (black aluminium box, far left, beam → float)
+══════════════════════════════════════ -->
+<!-- Mounting post -->
+<rect x="115" y="168" width="7" height="240" rx="3" fill="#607d8b" opacity=".65"/>
+<!-- Horizontal arm from post to sensor -->
+<rect x="120" y="345" width="70" height="6" rx="2" fill="#607d8b" opacity=".7"/>
+
+<!-- Sensor body (black aluminium housing, matches photo: dark box with lens) -->
+<g filter="url(#shadow)">
+  <!-- Outer shell -->
+  <rect x="28" y="330" width="94" height="52" rx="8"
+        fill="#1a1a1a" stroke="#333" stroke-width="2"/>
+  <!-- Front face (where lens is) -->
+  <rect x="30" y="333" width="88" height="46" rx="6" fill="#111"/>
+  <!-- Cooling ribs on top -->
+  <g stroke="#2a2a2a" stroke-width="1.5">
+    <line x1="36"  y1="330" x2="36"  y2="340"/>
+    <line x1="44"  y1="330" x2="44"  y2="340"/>
+    <line x1="52"  y1="330" x2="52"  y2="340"/>
+    <line x1="60"  y1="330" x2="60"  y2="340"/>
+    <line x1="68"  y1="330" x2="68"  y2="340"/>
+    <line x1="76"  y1="330" x2="76"  y2="340"/>
+    <line x1="84"  y1="330" x2="84"  y2="340"/>
+    <line x1="92"  y1="330" x2="92"  y2="340"/>
+    <line x1="100" y1="330" x2="100" y2="340"/>
+    <line x1="108" y1="330" x2="108" y2="340"/>
+    <line x1="116" y1="330" x2="116" y2="340"/>
+  </g>
+  <!-- Large emitter/receiver lens hole -->
+  <circle cx="64" cy="356" r="14" fill="#0a0a0a" stroke="#2a2a2a" stroke-width="2"/>
+  <circle cx="64" cy="356" r="10" fill="#060606"/>
+  <circle cx="64" cy="356" r="6"  fill="#0d1a2e"/>
+  <circle cx="61" cy="353" r="2.5" fill="#e3f2fd" opacity=".4"/>
+  <!-- Small LED indicator -->
+  <circle cx="108" cy="342" r="5.5" fill="#0a0a0a" stroke="#2a2a2a" stroke-width="1"/>
+  <circle id="laserLed" cx="108" cy="342" r="3.5" fill="#ef5350" class="led" filter="url(#glowS)"/>
+  <!-- Mounting slot holes -->
+  <rect x="34" y="362" width="8" height="4" rx="2" fill="#222"/>
+  <rect x="110" y="362" width="8" height="4" rx="2" fill="#222"/>
+</g>
+<!-- Sensor label -->
+<text x="32" y="325" font-size="9.5" fill="#e8eaf6" font-family="sans-serif" font-weight="700">Laser</text>
+<text x="32" y="338" font-size="9.5" fill="#e8eaf6" font-family="sans-serif" font-weight="700">Sensor</text>
+
+<!-- Laser beam from sensor to float (RED dashed line, matches photo) -->
+<line id="laserBeam" x1="122" y1="356" x2="204" y2="389"
+      stroke="#ff1744" stroke-width="2.5" class="lbeam"
+      stroke-dasharray="5,3" opacity=".9"/>
+<!-- Red impact dot on float -->
+<circle id="laserDot" cx="204" cy="389" r="4"
+        fill="#ff1744" filter="url(#glowS)" class="led-fast"/>
+
+<!-- Cable from sensor → STM32 (grey flat cable going right then down) -->
+<path d="M28 356 Q14 356 14 430 L14 540 Q14 552 24 552"
+      stroke="#455a64" stroke-width="3" fill="none" stroke-dasharray="6,3" opacity=".6"/>
+
+<!-- ══════════════════════════════════
+     VALVE ASSEMBLY
+     (below standpipe, matching photo layout)
+     Order: Tee Adapter → Water Injection Valve → Inlet Valve
+══════════════════════════════════════ -->
+<!-- Vertical pipe from standpipe bottom to valve assembly -->
+<rect x="208" y="504" width="14" height="30" rx="3" fill="#1a5a7a" stroke="#0e4d6e" stroke-width="1.5"/>
+<line id="downPipe" x1="215" y1="506" x2="215" y2="532"
+      stroke="#4fc3f7" stroke-width="5" class="fl off" opacity=".8"/>
+
+<!-- TEE ADAPTER body (horizontal T fitting, silver/metal) -->
+<g filter="url(#shadow)">
+  <!-- Main cross body -->
+  <rect x="190" y="534" width="50" height="18" rx="5"
+        fill="#546e7a" stroke="#78909c" stroke-width="2"/>
+  <!-- Tee top nozzle -->
+  <rect x="207" y="528" width="16" height="8" rx="3" fill="#607d8b" stroke="#78909c" stroke-width="1"/>
+  <!-- Tee left nozzle (to water injection pipe) -->
+  <rect x="176" y="540" width="16" height="6" rx="3" fill="#607d8b" stroke="#78909c" stroke-width="1"/>
+</g>
+<!-- Tee label -->
+<text x="285" y="542" font-size="8.5" fill="#8c9eff" font-family="monospace">Tee Adapter</text>
+<line x1="278" y1="540" x2="243" y2="543" stroke="#8c9eff" stroke-width="1"/>
+
+<!-- WATER INJECTION VALVE (on the tee's side branch, red indicator) -->
+<g filter="url(#shadow)">
+  <rect x="136" y="537" width="42" height="16" rx="5"
+        fill="#37474f" stroke="#546e7a" stroke-width="1.5"/>
+  <!-- Valve body diamond symbol -->
+  <polygon points="158,540 165,545 158,550 151,545" fill="#263238"/>
+  <!-- Red indicator cap -->
+  <circle id="winLed" cx="170" cy="545" r="5.5" fill="#ef5350" filter="url(#glowS)"/>
+</g>
+<!-- Pipe extending left from injection valve (goes to balancing tank supply) -->
+<rect x="104" y="540" width="34" height="8" rx="3" fill="#1a5a7a" stroke="#0e4d6e" stroke-width="1"/>
+<!-- Water injection valve label -->
+<text x="138" y="562" font-size="8" fill="#8c9eff" font-family="monospace">Water Injection Valve</text>
+
+<!-- INLET VALVE (below tee, larger valve with cross symbol) -->
+<g filter="url(#shadow)">
+  <rect x="196" y="556" width="38" height="34" rx="5"
+        fill="#37474f" stroke="#546e7a" stroke-width="2"/>
+  <!-- Valve cross symbol in centre -->
+  <rect x="207" y="560" width="16" height="26" rx="2" fill="#263238"/>
+  <!-- Cross cut-outs (valve symbol) -->
+  <polygon points="204,563 215,574 204,585 196,585 196,563" fill="#1a2530" opacity=".8"/>
+  <polygon points="226,563 234,563 234,585 226,585 215,574" fill="#1a2530" opacity=".8"/>
+  <!-- Small valves / bolts visible on sides -->
+  <circle cx="200" cy="570" r="3" fill="#546e7a"/>
+  <circle cx="230" cy="570" r="3" fill="#546e7a"/>
+  <circle cx="200" cy="580" r="3" fill="#546e7a"/>
+  <circle cx="230" cy="580" r="3" fill="#546e7a"/>
+  <!-- Red LED cap -->
+  <circle id="inletLed" cx="225" cy="563" r="4.5" fill="#ef5350" filter="url(#glowS)"/>
+</g>
+<!-- Inlet valve label callout -->
+<text x="270" y="573" font-size="9"   fill="#e8eaf6" font-family="sans-serif" font-weight="700">Inlet Valve</text>
+<line x1="268" y1="571" x2="237" y2="568" stroke="#e8eaf6" stroke-width="1.2"/>
+
+<!-- Pipe from inlet valve bottom → permeameter top -->
+<rect x="208" y="590" width="14" height="24" rx="3" fill="#1a5a7a" stroke="#0e4d6e" stroke-width="1.5"/>
+<line id="inletFlow" x1="215" y1="592" x2="215" y2="612"
+      stroke="#4fc3f7" stroke-width="5" class="fl off" opacity=".8"/>
+
+<!-- ══════════════════════════════════
+     TST-55 PERMEAMETER
+     Main transparent cylinder with soil inside,
+     silver/stainless steel top and bottom flanges,
+     4 side bolts, inlet/outlet barb fittings
+══════════════════════════════════════ -->
+<!-- Permeameter label -->
+<text x="166" y="612" font-size="9" fill="#e8eaf6" font-family="sans-serif">Permeameter</text>
+<line x1="194" y1="616" x2="200" y2="622" stroke="#e8eaf6" stroke-width="1.2"/>
+
+<g filter="url(#shadow)">
+  <!-- Top flange (stainless steel disc) -->
+  <ellipse cx="280" cy="616" rx="68" ry="10" fill="#78909c" stroke="#90a4ae" stroke-width="2"/>
+  <ellipse cx="280" cy="616" rx="56" ry="8"  fill="#607d8b"/>
+  <!-- 4 top bolts -->
+  <circle cx="222" cy="616" r="6" fill="#455a64" stroke="#546e7a" stroke-width="1.5"/>
+  <circle cx="248" cy="609" r="6" fill="#455a64" stroke="#546e7a" stroke-width="1.5"/>
+  <circle cx="312" cy="609" r="6" fill="#455a64" stroke="#546e7a" stroke-width="1.5"/>
+  <circle cx="338" cy="616" r="6" fill="#455a64" stroke="#546e7a" stroke-width="1.5"/>
+  <!-- Compression screw + handwheel -->
+  <rect x="276" y="600" width="8"  height="18" rx="2" fill="#90a4ae"/>
+  <circle cx="280" cy="600" r="12"  fill="#607d8b" stroke="#78909c" stroke-width="2"/>
+  <circle cx="280" cy="600" r="9"   fill="#546e7a"/>
+  <!-- Knob cross-slots -->
+  <line x1="280" y1="592" x2="280" y2="609" stroke="#78909c" stroke-width="2" stroke-linecap="round"/>
+  <line x1="271" y1="600" x2="289" y2="600" stroke="#78909c" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Main cylinder body (transparent acrylic walls) -->
+  <rect x="212" y="614" width="136" height="105"
+        fill="#08111e" stroke="#1565c0" stroke-width="2.5" opacity=".92"/>
+  <!-- Left glass shine on cylinder wall -->
+  <rect x="213" y="616" width="8" height="101" fill="#fff" opacity=".04"/>
+
+  <!-- SOIL INSIDE (brown granular fill, matching photo's 3D soil view) -->
+  <rect id="soilSample" x="215" y="617" width="130" height="100"
+        fill="#8B6914" opacity=".88"/>
+  <!-- Soil texture detail (circles = aggregate particles) -->
+  <g opacity=".5">
+    <circle cx="230" cy="630" r="6" fill="#a07818"/><circle cx="244" cy="620" r="4" fill="#c8a030"/>
+    <circle cx="258" cy="635" r="7" fill="#785a10"/><circle cx="272" cy="622" r="5" fill="#a07818"/>
+    <circle cx="286" cy="638" r="6" fill="#c8a030"/><circle cx="300" cy="625" r="4" fill="#785a10"/>
+    <circle cx="314" cy="632" r="7" fill="#a07818"/><circle cx="328" cy="620" r="5" fill="#c8a030"/>
+    <circle cx="226" cy="648" r="5" fill="#c8a030"/><circle cx="240" cy="660" r="6" fill="#785a10"/>
+    <circle cx="256" cy="650" r="4" fill="#a07818"/><circle cx="270" cy="665" r="7" fill="#c8a030"/>
+    <circle cx="285" cy="655" r="5" fill="#785a10"/><circle cx="300" cy="643" r="6" fill="#a07818"/>
+    <circle cx="316" cy="658" r="4" fill="#c8a030"/><circle cx="330" cy="648" r="7" fill="#785a10"/>
+    <circle cx="235" cy="678" r="5" fill="#a07818"/><circle cx="252" cy="688" r="6" fill="#c8a030"/>
+    <circle cx="268" cy="675" r="4" fill="#785a10"/><circle cx="284" cy="690" r="7" fill="#a07818"/>
+    <circle cx="300" cy="678" r="5" fill="#c8a030"/><circle cx="316" cy="685" r="6" fill="#785a10"/>
+    <circle cx="332" cy="670" r="4" fill="#a07818"/>
+  </g>
+  <!-- Water arrows flowing through soil (matching photo's inset) -->
+  <g fill="#4fc3f7" opacity=".4">
+    <polygon points="248,625 254,635 242,635"/>
+    <polygon points="272,625 278,635 266,635"/>
+    <polygon points="296,625 302,635 290,635"/>
+    <polygon points="320,625 326,635 314,635"/>
+  </g>
+
+  <!-- Side inlet port left (barb fitting) -->
+  <rect x="154" y="648" width="60" height="12" rx="5"
+        fill="#546e7a" stroke="#78909c" stroke-width="1.5"/>
+  <rect x="144" y="651" width="12" height="6"  rx="3" fill="#607d8b"/>
+  <polygon points="144,650 156,654 144,658" fill="#78909c"/>
+
+  <!-- Side outlet port right (barb fitting) -->
+  <rect x="346" y="648" width="58" height="12" rx="5"
+        fill="#546e7a" stroke="#78909c" stroke-width="1.5"/>
+  <rect x="404" y="651" width="12" height="6"  rx="3" fill="#607d8b"/>
+  <polygon points="416,650 404,654 416,658" fill="#78909c"/>
+
+  <!-- Bottom flange (stainless steel) -->
+  <ellipse cx="280" cy="719" rx="68" ry="10" fill="#78909c" stroke="#90a4ae" stroke-width="2"/>
+  <ellipse cx="280" cy="719" rx="56" ry="8"  fill="#607d8b"/>
+  <!-- Bottom 4 bolts -->
+  <circle cx="222" cy="719" r="6" fill="#455a64" stroke="#546e7a" stroke-width="1.5"/>
+  <circle cx="248" cy="726" r="6" fill="#455a64" stroke="#546e7a" stroke-width="1.5"/>
+  <circle cx="312" cy="726" r="6" fill="#455a64" stroke="#546e7a" stroke-width="1.5"/>
+  <circle cx="338" cy="719" r="6" fill="#455a64" stroke="#546e7a" stroke-width="1.5"/>
+
+  <!-- Water outlet nozzle bottom centre -->
+  <rect x="274" y="727" width="12" height="18" rx="4"
+        fill="#546e7a" stroke="#78909c" stroke-width="1.5"/>
+</g>
+<!-- Soil sample callout -->
+<text x="430" y="645" font-size="8.5" fill="#8c9eff" font-family="monospace">Soil sample</text>
+<text x="430" y="657" font-size="8.5" fill="#8c9eff" font-family="monospace">(length = L,</text>
+<text x="430" y="669" font-size="8.5" fill="#8c9eff" font-family="monospace">area = A)</text>
+<line x1="428" y1="650" x2="348" y2="660" stroke="#8c9eff" stroke-width="1"/>
+
+<!-- ══════════════════════════════════
+     AIR VENT VALVE ASSEMBLY
+     (brass body, red top cap, matching photo)
+══════════════════════════════════════ -->
+<!-- Pipe from permeameter right outlet → valve -->
+<rect x="404" y="652" width="42" height="8" rx="3" fill="#1a5a7a" stroke="#0e4d6e" stroke-width="1"/>
+<line id="outletRight" x1="405" y1="656" x2="444" y2="656"
+      stroke="#4fc3f7" stroke-width="4" class="fl off" opacity=".8"/>
+
+<!-- Air Vent Valve (brass body matching photo) -->
+<g filter="url(#shadow)">
+  <!-- Brass valve body -->
+  <rect x="444" y="640" width="30" height="32" rx="5"
+        fill="#c8952a" stroke="#d4a020" stroke-width="2"/>
+  <!-- Valve body detail ridges -->
+  <rect x="447" y="647" width="24" height="4"  rx="1" fill="#d4a030" opacity=".5"/>
+  <rect x="447" y="655" width="24" height="4"  rx="1" fill="#d4a030" opacity=".5"/>
+  <!-- Red cap on top -->
+  <circle id="airLed" cx="459" cy="640" r="9" fill="#e53935" stroke="#ff8a80" stroke-width="1.5"
+          filter="url(#glowS)"/>
+  <!-- Top valve stem -->
+  <rect x="456" y="628" width="6" height="14" rx="2" fill="#455a64"/>
+  <!-- Pipe connection bottom -->
+  <rect x="456" y="670" width="6" height="16" rx="2" fill="#546e7a"/>
+  <!-- Side pipe connection right -->
+  <rect x="474" y="652" width="20" height="6" rx="3" fill="#546e7a"/>
+</g>
+<!-- Air Vent Valve label -->
+<text x="500" y="640" font-size="8.5" fill="#8c9eff" font-family="monospace">Air Vent Valve</text>
+<line x1="498" y1="645" x2="476" y2="648" stroke="#8c9eff" stroke-width="1"/>
+
+<!-- AIR VALVE (circular gauge, separate component) -->
+<g filter="url(#shadow)">
+  <!-- Circular gauge body -->
+  <circle cx="530" cy="680" r="22" fill="#263238" stroke="#37474f" stroke-width="2"/>
+  <circle cx="530" cy="680" r="17" fill="#1a2530" stroke="#263238" stroke-width="1"/>
+  <!-- Gauge face marks -->
+  <g stroke="#546e7a" stroke-width="1">
+    <line x1="530" y1="663" x2="530" y2="668"/><!-- 12 oclock -->
+    <line x1="547" y1="668" x2="543" y2="672"/><!-- 2 oclock -->
+    <line x1="513" y1="668" x2="517" y2="672"/><!-- 10 oclock -->
+  </g>
+  <!-- Gauge needle -->
+  <line x1="530" y1="680" x2="530" y2="666" stroke="#d4900a" stroke-width="2" stroke-linecap="round"/>
+  <!-- Pipe connection -->
+  <rect x="527" y="700" width="6" height="14" rx="2" fill="#37474f"/>
+  <rect x="494" y="677" width="14" height="6" rx="2" fill="#37474f"/>
+</g>
+<!-- Air valve connection from air vent to air valve -->
+<rect x="478" y="674" width="52" height="6" rx="3" fill="#37474f" opacity=".8"/>
+<text x="545" y="636" font-size="8.5" fill="#8c9eff" font-family="monospace">Air Valve</text>
+<line x1="543" y1="642" x2="534" y2="660" stroke="#8c9eff" stroke-width="1"/>
+
+<!-- ══════════════════════════════════
+     ANNULAR PHOTOELECTRIC SENSOR
+     (ring sensor around permeameter base)
+══════════════════════════════════════ -->
+<!-- Ring shape around permeameter bottom flange -->
+<ellipse cx="280" cy="720" rx="80" ry="13"
+         fill="none" stroke="#aa00ff" stroke-width="3" stroke-dasharray="6,4" opacity=".9"/>
+<circle id="pls1" cx="200" cy="720" r="6" fill="#aa00ff" class="led" filter="url(#glowS)" opacity=".8"/>
+<circle id="pls2" cx="360" cy="720" r="6" fill="#aa00ff" class="led" filter="url(#glowS)" opacity=".8"/>
+<!-- Sensor cable going right to air valve post -->
+<path d="M360 720 Q380 720 400 710 L520 710 L520 694"
+      stroke="#aa00ff" stroke-width="2" fill="none" stroke-dasharray="4,3" opacity=".7"/>
+<!-- Annular sensor label -->
+<text x="280" y="740" text-anchor="middle" font-size="8.5" fill="#ce93d8" font-family="monospace">Annular</text>
+<text x="280" y="752" text-anchor="middle" font-size="8.5" fill="#ce93d8" font-family="monospace">Photoelectric Sensor</text>
+
+<!-- ══════════════════════════════════
+     WATER OUTLET HOLE (bottom of permeameter)
+     with animated water dripping down
+══════════════════════════════════════ -->
+<!-- Outlet pipe going down -->
+<rect x="277" y="744" width="6" height="22" rx="2" fill="#1a5a7a"/>
+<line id="outletFlow" x1="280" y1="746" x2="280" y2="764"
+      stroke="#4fc3f7" stroke-width="5" class="fl off" opacity=".9"/>
+<!-- Water outlet arrow (blue arrow pointing down, matching photo) -->
+<text x="280" y="785" text-anchor="middle" font-size="18" fill="#4fc3f7" id="outletArrow" opacity=".6">↓</text>
+<!-- Outlet label -->
+<text x="280" y="800" text-anchor="middle" font-size="9" fill="#8c9eff" font-family="monospace" font-weight="bold">Water Outlet Hole</text>
+
+<!-- ══════════════════════════════════
+     STM32/CH32 CONTROLLER BOX
+     (bottom-left, with LCD and buttons)
+══════════════════════════════════════ -->
+<g filter="url(#shadow)">
+  <rect x="14" y="545" width="130" height="130" rx="8"
+        fill="#0d1040" stroke="#1e2a80" stroke-width="2"/>
+  <rect x="17" y="548" width="124" height="124" rx="6" fill="#07091c" opacity=".9"/>
+</g>
+<!-- PCB (green) -->
+<rect x="20" y="552" width="118" height="100" rx="5"
+      fill="#0d2010" stroke="#1b5e20" stroke-width="1.5"/>
+<!-- LCD display -->
+<rect x="24" y="556" width="78" height="54" rx="4"
+      fill="#001205" stroke="#1b5e20" stroke-width="1.5"/>
+<rect x="26" y="558" width="74" height="50" rx="3" fill="#001a06"/>
+<text id="lc0" x="63" y="570" text-anchor="middle" font-size="5.8" fill="#69f0ae" font-family="monospace">设定高度: 700 mm</text>
+<text id="lc1" x="63" y="579" text-anchor="middle" font-size="5.5" fill="#69f0ae" font-family="monospace">排气时间: 10 s</text>
+<text id="lc2" x="63" y="588" text-anchor="middle" font-size="5.5" fill="#69f0ae" font-family="monospace">出水滴数: 05</text>
+<text id="lc3" x="63" y="597" text-anchor="middle" font-size="5.5" fill="#69f0ae" font-family="monospace">测试次数: 05</text>
+<text id="lc4" x="63" y="606" text-anchor="middle" font-size="5.5" fill="#00e676" font-family="monospace">状态: READY</text>
+<!-- Buttons -->
+<g fill="#131d5c" stroke="#283593" stroke-width=".8">
+  <rect x="24" y="614" width="14" height="11" rx="2"/>
+  <rect x="40" y="614" width="14" height="11" rx="2"/>
+  <rect x="56" y="614" width="14" height="11" rx="2"/>
+  <rect x="72" y="614" width="14" height="11" rx="2"/>
+</g>
+<text x="31" y="623" text-anchor="middle" font-size="5.5" fill="#7986cb">SET</text>
+<text x="47" y="623" text-anchor="middle" font-size="5.5" fill="#7986cb">▲</text>
+<text x="63" y="623" text-anchor="middle" font-size="5.5" fill="#7986cb">▼</text>
+<text x="79" y="623" text-anchor="middle" font-size="5.5" fill="#7986cb">ENT</text>
+<!-- STM32 chip -->
+<rect x="104" y="555" width="28" height="28" rx="3" fill="#111" stroke="#222" stroke-width="1"/>
+<text x="118" y="568" text-anchor="middle" font-size="6" fill="#8c9eff" font-family="monospace" font-weight="bold">STM32</text>
+<text x="118" y="576" text-anchor="middle" font-size="5.5" fill="#5c6bc0" font-family="monospace">CH32</text>
+<!-- Status LEDs -->
+<circle class="led" cx="106" cy="590" r="4" fill="#69f0ae" filter="url(#glowS)" id="mcuPwr"/>
+<circle cx="106" cy="600" r="4" fill="#263238" id="mcuRun"/>
+<circle cx="106" cy="610" r="4" fill="#263238" id="mcuRS4"/>
+<text x="112" y="593" font-size="5.5" fill="#5c6bc0">PWR</text>
+<text x="112" y="603" font-size="5.5" fill="#5c6bc0">RUN</text>
+<text x="112" y="613" font-size="5.5" fill="#5c6bc0">485</text>
+<!-- RS-485 connector -->
+<rect x="24" y="630" width="26" height="10" rx="2" fill="#111" stroke="#222" stroke-width="1"/>
+<text x="37" y="638" text-anchor="middle" font-size="5.5" fill="#8c9eff" font-family="monospace">RS-485</text>
+<!-- Controller label -->
+<text x="79" y="686" text-anchor="middle" font-size="9" fill="#8c9eff" font-family="monospace" font-weight="bold">STM32 / CH32</text>
+<text x="79" y="698" text-anchor="middle" font-size="8" fill="#5c6bc0" font-family="monospace">CONTROLLER</text>
+
+<!-- ══════════════════════════════════
+     ARROW MARKERS (for pipe flow indicators)
+══════════════════════════════════════ -->
+<defs>
+  <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+    <polygon points="0,0 8,4 0,8" fill="#4fc3f7"/>
+  </marker>
+</defs>
+<!-- Flow direction arrows on main pipes -->
+<polygon points="488,218 492,228 484,228" fill="#4fc3f7" opacity=".7"/>
+<polygon points="215,235 219,245 211,245" fill="#4fc3f7" opacity=".7"/>
+<polygon points="215,507 219,517 211,517" fill="#4fc3f7" opacity=".7"/>
+<polygon points="215,594 219,604 211,604" fill="#4fc3f7" opacity=".7"/>
+<polygon points="280,748 284,758 276,758" fill="#4fc3f7" opacity=".7"/>
+<!-- Supply pipe arrow (left-pointing) -->
+<polygon points="360,228 350,232 360,236" fill="#4fc3f7" opacity=".7"/>
+
+<!-- Water particles group (animated drips) -->
+<g id="parts"></g>
+
+<!-- ══════════════════════════════════
+     CLIP PATH for tube water
+══════════════════════════════════════ -->
+<defs>
+  <clipPath id="tubeClip"><rect x="204" y="175" width="22" height="318"/></clipPath>
+</defs>
+
+<!-- ════════════════════════
+     RIGHT SIDE — WATER SUPPLY SYSTEM
+     (matches PDF: balancing tank top, pump right, storage tank bottom right)
+════════════════════════ -->
+
+<!-- ── BALANCING WATER TANK (upper right) ── -->
+<g filter="url(#shadow)">
+  <rect x="320" y="20" width="130" height="75" rx="8"
+        fill="url(#tankG)" stroke="#1e2a80" stroke-width="2"/>
+  <!-- Water inside -->
+  <rect id="balWater" x="323" y="42" width="124" height="48" rx="4"
+        fill="url(#wG)" opacity=".75"/>
+  <ellipse cx="385" cy="42" rx="62" ry="7" fill="#4fc3f7" opacity=".4"/>
+  <!-- Tank top rim -->
+  <rect x="320" y="20" width="130" height="10" rx="4" fill="#1e2a80"/>
+  <!-- Water surface ripple (animated) -->
+  <ellipse cx="385" cy="42" rx="54" ry="4" fill="#80deea" opacity=".35"/>
+</g>
+<!-- Overflow arrow at top -->
+<line x1="385" y1="20" x2="385" y2="10" stroke="#1e2a80" stroke-width="2" marker-end="url(#arr)"/>
+<!-- Tank label -->
+<text x="385" y="104" text-anchor="middle" font-size="7.5" fill="#8c9eff"
+      font-family="monospace" font-weight="bold">BALANCING WATER TANK</text>
+
+<!-- Level sensor 2 (in balancing tank) -->
+<rect x="438" y="55" width="4" height="20" rx="1" fill="#d4900a" opacity=".6"/>
+<circle id="ls2Led" cx="440" cy="50" r="3.5" fill="#ef5350" filter="url(#glowS)" class="led"/>
+<text x="447" y="53" font-size="6" fill="#8c9eff" font-family="monospace">LS2</text>
+
+<!-- Level sensor 3 (upper limit, balancing tank) -->
+<rect x="438" y="32" width="4" height="10" rx="1" fill="#4fc3f7" opacity=".6"/>
+<circle id="ls3Led" cx="440" cy="29" r="3.5" fill="#4fc3f7" filter="url(#glowS)" opacity=".4"/>
+<text x="447" y="32" font-size="6" fill="#8c9eff" font-family="monospace">LS3</text>
+
+<!-- Overflow pipe (top of balancing tank, return) -->
+<rect x="449" y="20" width="6" height="12" rx="2" fill="#37474f"/>
+<path d="M452 20 Q452 10 460 10 L490 10" stroke="#37474f" stroke-width="3" fill="none"/>
+
+<!-- Vertical supply pipe from balancing tank going down to tee -->
+<rect x="207" y="95" width="6" height="40" fill="#37474f"/>
+<rect x="205" y="95" width="10" height="5" rx="2" fill="#546e7a"/>
+<!-- Horizontal pipe from right side to standpipe top -->
+<rect x="213" y="95" width="158" height="6" rx="3" fill="#37474f"/>
+<rect x="214" y="96" width="156" height="2" rx="1" fill="#546e7a" opacity=".4"/>
+<!-- animated water flow in supply pipes -->
+<line id="supH" x1="215" y1="98" x2="368" y2="98"
+      stroke="#4fc3f7" stroke-width="3" class="fl off" opacity=".8"/>
+<line id="supV" x1="210" y1="97" x2="210" y2="134"
+      stroke="#4fc3f7" stroke-width="3" class="fl off" opacity=".8"/>
+
+<!-- ── WATER INJECTION PUMP (right, mid) ── -->
+<g filter="url(#shadow)">
+  <!-- Pump housing -->
+  <circle cx="320" cy="253" r="28" fill="url(#bodyG)" stroke="#37474f" stroke-width="2.5"/>
+  <circle cx="320" cy="253" r="22" fill="#0a0d20" stroke="#263238" stroke-width="1"/>
+  <!-- Spinning blades -->
+  <g id="pumpBlade" class="off">
+    <line x1="320" y1="238" x2="320" y2="268" stroke="#4fc3f7" stroke-width="3" stroke-linecap="round"/>
+    <line x1="305" y1="253" x2="335" y2="253" stroke="#4fc3f7" stroke-width="3" stroke-linecap="round"/>
+    <line x1="310" y1="243" x2="330" y2="263" stroke="#4fc3f7" stroke-width="2" stroke-linecap="round" opacity=".6"/>
+    <line x1="310" y1="263" x2="330" y2="243" stroke="#4fc3f7" stroke-width="2" stroke-linecap="round" opacity=".6"/>
+  </g>
+  <!-- Status LED -->
+  <circle id="pumpLed" cx="337" cy="235" r="5" fill="#ef5350" filter="url(#glowS)"/>
+  <!-- Connection nozzles -->
+  <rect x="345" y="250" width="16" height="7" rx="3" fill="url(#metalG)"/>
+  <rect x="317" y="278" width="7" height="14" rx="3" fill="url(#metalG)"/>
+</g>
+<text x="320" y="290" text-anchor="middle" font-size="7" fill="#8c9eff"
+      font-family="monospace">WATER INJECTION PUMP</text>
+
+<!-- Pipe pump outlet up to balancing tank -->
+<rect x="317" y="95" width="6" height="95" fill="#37474f"/>
+<line id="pumpToTank" x1="320" y1="96" x2="320" y2="188"
+      stroke="#4fc3f7" stroke-width="3" class="fl off" opacity=".8"/>
+
+<!-- Pipe pump inlet from storage tank -->
+<rect x="317" y="293" width="6" height="225" fill="#37474f" opacity=".7"/>
+<path d="M320 518 Q320 530 360 530 L370 530"
+      stroke="#37474f" stroke-width="4" fill="none"/>
+<line id="storageToPump" x1="320" y1="294" x2="320" y2="516"
+      stroke="#4fc3f7" stroke-width="3" class="fl off" opacity=".7" stroke-dasharray="5,4"/>
+
+<!-- ── WATER STORAGE TANK (lower right) ── -->
+<g filter="url(#shadow)">
+  <rect x="370" y="495" width="120" height="90" rx="8"
+        fill="url(#tankG)" stroke="#1e2a80" stroke-width="2"/>
+  <rect id="stoWater" x="373" y="535" width="114" height="45" rx="4"
+        fill="url(#wG)" opacity=".7"/>
+  <ellipse cx="430" cy="535" rx="57" ry="7" fill="#4fc3f7" opacity=".35"/>
+  <rect x="370" y="495" width="120" height="10" rx="4" fill="#1e2a80"/>
+</g>
+<!-- Level sensor 1 (in storage tank) -->
+<rect x="478" y="535" width="4" height="20" rx="1" fill="#d4900a" opacity=".6"/>
+<circle id="ls1Led" cx="480" cy="530" r="3.5" fill="#ef5350" filter="url(#glowS)" class="led"/>
+<text x="457" y="490" text-anchor="middle" font-size="7.5" fill="#8c9eff"
+      font-family="monospace" font-weight="bold">WATER STORAGE TANK</text>
+<text x="455" y="500" text-anchor="middle" font-size="6" fill="#5c6bc0" font-family="monospace">LS1</text>
+
+<!-- ════════════════════════
+     CENTRE — STANDPIPE ASSEMBLY
+     Exact layout from PDF: glass tube with float and graduation scale
+════════════════════════ -->
+
+<!-- Support frame rods -->
+<rect x="188" y="50" width="7" height="410" rx="3" fill="url(#metalG)" opacity=".75"/>
+<rect x="225" y="50" width="7" height="410" rx="3" fill="url(#metalG)" opacity=".75"/>
+<!-- Top crossbar -->
+<rect x="185" y="48" width="50" height="8" rx="3" fill="url(#metalG)"/>
+<!-- Bottom crossbar -->
+<rect x="185" y="456" width="50" height="8" rx="3" fill="url(#metalG)"/>
+
+<!-- ── GLASS TUBE (standpipe) ── -->
+<!-- Outer border (tube walls) -->
+<rect x="197" y="55" width="26" height="320" rx="4"
+      fill="none" stroke="#1565c0" stroke-width="3"/>
+<!-- Glass interior -->
+<rect x="200" y="58" width="20" height="314" rx="3" fill="url(#glassG)"/>
+<!-- Left inner shine -->
+<rect x="201" y="59" width="4" height="312" rx="2" fill="#fff" opacity=".06"/>
+
+<!-- ── GRADUATED RULER (right side of tube) ── -->
+<!-- mm scale: SVG y=62 = 1000mm, y=368 = 0mm → range 306px = 1000mm → 0.306 px/mm -->
+<text x="240" y="66" font-size="7" fill="#d4900a" font-family="monospace" font-weight="bold">mm</text>
+<g font-size="6" fill="#5c6bc0" font-family="monospace">
+  <line x1="220" y1="62"  x2="236" y2="62"  stroke="#d4900a" stroke-width="1.5"/>
+  <text x="238" y="66">1000</text>
+  <line x1="220" y1="93"  x2="230" y2="93"  stroke="#8c9eff" stroke-width="1"/>
+  <line x1="220" y1="124" x2="236" y2="124" stroke="#8c9eff" stroke-width="1.2"/>
+  <text x="238" y="128">800</text>
+  <line x1="220" y1="155" x2="230" y2="155" stroke="#8c9eff" stroke-width="1"/>
+  <line x1="220" y1="185" x2="236" y2="185" stroke="#8c9eff" stroke-width="1.2"/>
+  <text x="238" y="189">600</text>
+  <line x1="220" y1="216" x2="230" y2="216" stroke="#8c9eff" stroke-width="1"/>
+  <line x1="220" y1="247" x2="236" y2="247" stroke="#8c9eff" stroke-width="1.2"/>
+  <text x="238" y="251">400</text>
+  <line x1="220" y1="277" x2="230" y2="277" stroke="#8c9eff" stroke-width="1"/>
+  <line x1="220" y1="308" x2="236" y2="308" stroke="#8c9eff" stroke-width="1.2"/>
+  <text x="238" y="312">200</text>
+  <line x1="220" y1="338" x2="230" y2="338" stroke="#8c9eff" stroke-width="1"/>
+  <line x1="220" y1="368" x2="236" y2="368" stroke="#d4900a" stroke-width="1.5"/>
+  <text x="238" y="372">0</text>
+</g>
+
+<!-- ── WATER IN TUBE (dynamic) ── -->
+<rect id="tubeWater" x="201" y="290" width="20" height="78"
+      fill="url(#wG)" rx="2" clip-path="url(#tubeClip)" opacity=".88"/>
+<!-- Water surface (animated wave) -->
+<ellipse id="wSurf" cx="211" cy="290" rx="10" ry="4"
+         fill="#80deea" opacity="0"/>
+
+<!-- ── FLOAT (red rectangle on water surface, key feature from PDF) ── -->
+<rect id="floatRect" x="202" y="284" width="18" height="10" rx="3"
+      fill="#e53935" stroke="#ef9a9a" stroke-width="1.5"/>
+<!-- Float shine highlight -->
+<rect x="203" y="285" width="8" height="3" rx="1.5" fill="#fff" opacity=".3"/>
+
+<!-- Live head readout callout -->
+<rect id="hCallout" x="130" y="285" width="64" height="16" rx="4"
+      fill="#0d1245" stroke="#d4900a" stroke-width="1.2"/>
+<text id="hCalloutTxt" x="162" y="297" text-anchor="middle"
+      font-size="8.5" fill="#d4900a" font-family="monospace" font-weight="bold">H = — mm</text>
+<line id="hCalloutLine" x1="194" y1="293" x2="202" y2="290"
+      stroke="#d4900a" stroke-width="1.2" stroke-dasharray="3,2"/>
+
+<!-- Top cap of tube -->
+<rect x="193" y="48" width="34" height="9"  rx="3" fill="url(#metalG)"/>
+<rect x="200" y="42" width="10" height="8"  rx="2" fill="#37474f"/>
+<!-- Bottom cap -->
+<rect x="193" y="374" width="34" height="9" rx="3" fill="url(#metalG)"/>
+
+<!-- ════════════════════════
+     LASER SENSOR ASSEMBLY
+     (PDF: positioned to left of tube, beam targets float)
+════════════════════════ -->
+<!-- Mounting arm -->
+<rect x="152" y="283" width="48" height="5"  rx="2" fill="url(#metalG)" opacity=".8"/>
+<rect x="148" y="276" width="5"  height="30" rx="2" fill="url(#metalG)" opacity=".7"/>
+
+<!-- Sensor housing (aluminium box, matches slide 9 photo) -->
+<g filter="url(#shadow)">
+  <!-- Main body -->
+  <rect x="58" y="272" width="92" height="40" rx="7"
+        fill="url(#metalG)" stroke="#78909c" stroke-width="1.5"/>
+  <!-- Dark face plate -->
+  <rect x="62" y="276" width="84" height="32" rx="5" fill="#151515"/>
+  <!-- Cooling fins on top -->
+  <g stroke="#90a4ae" stroke-width="1.2">
+    <line x1="66"  y1="272" x2="66"  y2="280"/><line x1="73"  y1="272" x2="73"  y2="280"/>
+    <line x1="80"  y1="272" x2="80"  y2="280"/><line x1="87"  y1="272" x2="87"  y2="280"/>
+    <line x1="94"  y1="272" x2="94"  y2="280"/><line x1="101" y1="272" x2="101" y2="280"/>
+    <line x1="108" y1="272" x2="108" y2="280"/><line x1="115" y1="272" x2="115" y2="280"/>
+    <line x1="122" y1="272" x2="122" y2="280"/><line x1="129" y1="272" x2="129" y2="280"/>
+    <line x1="136" y1="272" x2="136" y2="280"/><line x1="143" y1="272" x2="143" y2="280"/>
+  </g>
+  <!-- Main lens (large aperture) -->
+  <circle cx="86" cy="292" r="11" fill="#0a0a1a" stroke="#37474f" stroke-width="2"/>
+  <circle cx="86" cy="292" r="8"  fill="#050510"/>
+  <circle cx="86" cy="292" r="5"  fill="#0d1a3a"/>
+  <circle cx="83" cy="289" r="2"  fill="#e3f2fd" opacity=".5"/>
+  <!-- Small LED on face -->
+  <circle cx="135" cy="284" r="5" fill="#1a1a2e" stroke="#37474f" stroke-width="1"/>
+  <circle id="laserLed" cx="135" cy="284" r="3" fill="#ef5350" class="led" filter="url(#glowS)"/>
+  <!-- Mounting holes -->
+  <circle cx="66"  cy="292" r="3" fill="#546e7a"/>
+  <circle cx="144" cy="292" r="3" fill="#546e7a"/>
+</g>
+<!-- Sensor label -->
+<text x="104" y="320" text-anchor="middle" font-size="7.5" fill="#8c9eff"
+      font-family="monospace" font-weight="bold">LASER SENSOR</text>
+<text x="104" y="330" text-anchor="middle" font-size="6.5" fill="#5c6bc0"
+      font-family="monospace">±1mm · 0.1mm res · 80m</text>
+
+<!-- Laser beam → float -->
+<line id="laserBeam" x1="96" y1="292" x2="202" y2="290"
+      stroke="#ffd600" stroke-width="2.5" class="lbeam"
+      stroke-dasharray="5,3" opacity=".85"/>
+<!-- Red dot impact on float -->
+<circle id="laserDot" cx="202" cy="290" r="3.5" fill="#ff1744"
+        filter="url(#glowS)" class="led-fast"/>
+
+<!-- Cable: sensor → controller (flat ribbon) -->
+<path d="M58 290 Q40 290 40 370 L40 430 Q40 440 52 440 L68 440"
+      stroke="#ffd600" stroke-width="2.5" fill="none" opacity=".65"/>
+
+<!-- ════════════════════════
+     VALVE ASSEMBLY (below standpipe)
+     Order top→bottom: Water Injection Valve, Tee Adapter, Inlet Valve
+════════════════════════ -->
+<!-- Connecting pipe standpipe bottom → valves -->
+<rect x="207" y="383" width="6" height="18" fill="#37474f"/>
+
+<!-- Water Injection Valve -->
+<rect x="193" y="400" width="34" height="14" rx="4"
+      fill="#1a237e" stroke="#3949ab" stroke-width="1.5"/>
+<circle id="winLed" cx="213" cy="407" r="3.5" fill="#ef5350" filter="url(#glowS)"/>
+<text x="213" y="423" text-anchor="middle" font-size="6" fill="#8c9eff" font-family="monospace">WATER INJ. VALVE</text>
+
+<!-- Tee Adapter -->
+<rect x="193" y="427" width="34" height="12" rx="4"
+      fill="#283593" stroke="#3949ab" stroke-width="1.5"/>
+<!-- Tee horizontal branch (water injection path) -->
+<rect x="227" y="430" width="40" height="6" rx="2" fill="#37474f"/>
+<line id="teeFlow" x1="228" y1="433" x2="264" y2="433"
+      stroke="#4fc3f7" stroke-width="3" class="fl off" opacity=".8"/>
+<text x="213" y="448" text-anchor="middle" font-size="6" fill="#8c9eff" font-family="monospace">TEE ADAPTER</text>
+
+<!-- Inlet Valve -->
+<rect x="193" y="452" width="34" height="14" rx="4"
+      fill="#1a237e" stroke="#3949ab" stroke-width="1.5"/>
+<!-- Valve symbol (cross) -->
+<line x1="200" y1="459" x2="226" y2="459" stroke="#4fc3f7" stroke-width="1.5"/>
+<line x1="213" y1="453" x2="213" y2="466" stroke="#4fc3f7" stroke-width="1.5"/>
+<circle id="inletLed" cx="223" cy="457" r="3.5" fill="#ef5350" filter="url(#glowS)"/>
+<text x="213" y="473" text-anchor="middle" font-size="6" fill="#8c9eff" font-family="monospace">INLET VALVE</text>
+
+<!-- Pipe from inlet valve → permeameter top -->
+<rect x="207" y="466" width="6" height="18" fill="#37474f"/>
+<line id="inletFlow" x1="210" y1="467" x2="210" y2="483"
+      stroke="#4fc3f7" stroke-width="3" class="fl off" opacity=".8"/>
+
+<!-- ════════════════════════
+     STM32/CH32 CONTROLLER BOX
+     (left side, connected by ribbon cables)
+════════════════════════ -->
+<g filter="url(#shadow)">
+  <rect x="10" y="400" width="130" height="160" rx="8"
+        fill="#10143a" stroke="#1e2a80" stroke-width="2"/>
+  <rect x="13" y="403" width="124" height="154" rx="6" fill="#07091c" opacity=".9"/>
+</g>
+<!-- PCB -->
+<rect x="16" y="406" width="118" height="110" rx="5"
+      fill="url(#pcbG)" stroke="#2e7d32" stroke-width="1.5"/>
+<rect x="18" y="408" width="114" height="106" rx="4" fill="#0d1e10" opacity=".7"/>
+
+<!-- LCD screen (matching the real device in PDF slide 8) -->
+<rect x="20" y="412" width="76" height="56" rx="4"
+      fill="#000d04" stroke="#2e7d32" stroke-width="1.5"/>
+<rect x="22" y="414" width="72" height="52" rx="3" fill="#001a05"/>
+<text id="lc0" x="58" y="424" text-anchor="middle" font-size="6"   fill="#69f0ae" font-family="monospace">设定高度: 700 mm</text>
+<text id="lc1" x="58" y="433" text-anchor="middle" font-size="5.5" fill="#69f0ae" font-family="monospace">排气时间: 10 s</text>
+<text id="lc2" x="58" y="442" text-anchor="middle" font-size="5.5" fill="#69f0ae" font-family="monospace">出水滴数: 05</text>
+<text id="lc3" x="58" y="451" text-anchor="middle" font-size="5.5" fill="#69f0ae" font-family="monospace">测试次数: 05</text>
+<text id="lc4" x="58" y="460" text-anchor="middle" font-size="5.5" fill="#00e676" font-family="monospace">当前步骤: READY</text>
+
+<!-- Buttons (4 push buttons below LCD) -->
+<g fill="#1a237e" stroke="#283593" stroke-width=".8">
+  <rect x="20" y="472" width="14" height="12" rx="2"/>
+  <rect x="36" y="472" width="14" height="12" rx="2"/>
+  <rect x="52" y="472" width="14" height="12" rx="2"/>
+  <rect x="68" y="472" width="14" height="12" rx="2"/>
+</g>
+<text x="27" y="481" text-anchor="middle" font-size="5.5" fill="#7986cb">SET</text>
+<text x="43" y="481" text-anchor="middle" font-size="5.5" fill="#7986cb">▲</text>
+<text x="59" y="481" text-anchor="middle" font-size="5.5" fill="#7986cb">▼</text>
+<text x="75" y="481" text-anchor="middle" font-size="5.5" fill="#7986cb">ENT</text>
+
+<!-- STM32 chip -->
+<rect x="98" y="410" width="32" height="32" rx="3"
+      fill="#1a1a2e" stroke="#263238" stroke-width="1"/>
+<rect x="100" y="412" width="28" height="28" rx="2" fill="#0a0a1a"/>
+<text x="114" y="426" text-anchor="middle" font-size="6.5" fill="#8c9eff" font-family="monospace" font-weight="bold">STM32</text>
+<text x="114" y="434" text-anchor="middle" font-size="5.5" fill="#5c6bc0" font-family="monospace">CH32</text>
+<!-- Chip pins -->
+<g fill="#b0bec5">
+  <rect x="96" y="413" width="3" height="2"/><rect x="96" y="417" width="3" height="2"/>
+  <rect x="96" y="421" width="3" height="2"/><rect x="96" y="425" width="3" height="2"/>
+  <rect x="96" y="429" width="3" height="2"/><rect x="96" y="433" width="3" height="2"/>
+  <rect x="130" y="413" width="3" height="2"/><rect x="130" y="417" width="3" height="2"/>
+  <rect x="130" y="421" width="3" height="2"/><rect x="130" y="425" width="3" height="2"/>
+  <rect x="130" y="429" width="3" height="2"/><rect x="130" y="433" width="3" height="2"/>
+</g>
+
+<!-- Status LEDs -->
+<circle class="led" cx="102" cy="450" r="3.5" fill="#69f0ae" filter="url(#glowS)" id="mcuPwr"/>
+<text x="107" y="453" font-size="5.5" fill="#5c6bc0">PWR</text>
+<circle cx="102" cy="459" r="3.5" fill="#263238" id="mcuRun"/>
+<text x="107" y="462" font-size="5.5" fill="#5c6bc0">RUN</text>
+<circle cx="102" cy="468" r="3.5" fill="#263238" id="mcuRS4"/>
+<text x="107" y="471" font-size="5.5" fill="#5c6bc0">485</text>
+
+<!-- RS-485 port -->
+<rect x="20" y="490" width="28" height="12" rx="2"
+      fill="#1a1a2e" stroke="#37474f" stroke-width="1"/>
+<text x="34" y="499" text-anchor="middle" font-size="5.5" fill="#8c9eff" font-family="monospace">RS-485</text>
+
+<!-- Enclosure label -->
+<text x="75" y="578" text-anchor="middle" font-size="8.5"  fill="#8c9eff" font-family="monospace" font-weight="bold">STM32 / CH32</text>
+<text x="75" y="590" text-anchor="middle" font-size="7"    fill="#5c6bc0" font-family="monospace">CONTROLLER</text>
+
+<!-- ════════════════════════
+     TST-55 PERMEAMETER
+     (bottom centre, matches PDF schematic)
+════════════════════════ -->
+<g filter="url(#shadow)">
+  <!-- Outer black cylinder -->
+  <ellipse cx="220" cy="488" rx="60" ry="9"  fill="#2a2a2a" stroke="#3d3d3d" stroke-width="1.5"/>
+  <rect x="160" y="488" width="120" height="85" fill="#1a1a1a" stroke="#3d3d3d" stroke-width="1.5"/>
+  <ellipse cx="220" cy="573" rx="60" ry="9"  fill="#141414" stroke="#3d3d3d" stroke-width="1.5"/>
+
+  <!-- Stainless top ring -->
+  <ellipse cx="220" cy="488" rx="60" ry="9"  fill="url(#metalG)" stroke="#90a4ae" stroke-width="1.2"/>
+  <ellipse cx="220" cy="488" rx="46" ry="7"  fill="#2a2a2a" stroke="#444" stroke-width=".8"/>
+  <ellipse cx="220" cy="488" rx="28" ry="5"  fill="#1a1a1a"/>
+
+  <!-- Soil sample inside -->
+  <rect id="soilSample" x="163" y="493" width="114" height="74"
+        fill="url(#soilG)" clip-path="url(#pmClip)" opacity=".9"/>
+
+  <!-- Body surface detail lines -->
+  <line x1="160" y1="520" x2="280" y2="520" stroke="#262626" stroke-width="1" opacity=".8"/>
+  <line x1="160" y1="545" x2="280" y2="545" stroke="#262626" stroke-width="1" opacity=".8"/>
+
+  <!-- Compression knob + rod -->
+  <rect x="216" y="474" width="8" height="18" rx="2" fill="url(#metalG)"/>
+  <circle cx="220" cy="474" r="11" fill="#37474f" stroke="#607d8b" stroke-width="1.5"/>
+  <circle cx="220" cy="474" r="8"  fill="#2d3a4a"/>
+  <line x1="220" y1="466" x2="220" y2="483" stroke="#607d8b" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="212" y1="474" x2="228" y2="474" stroke="#607d8b" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- Side inlet port (left) - water flows IN to bottom of sample -->
+  <rect x="125" y="525" width="38" height="10" rx="4"
+        fill="url(#metalG)" stroke="#78909c" stroke-width="1"/>
+  <rect x="118" y="528" width="8" height="4" rx="1" fill="#607d8b"/>
+  <!-- Barb fittings -->
+  <polygon points="118,527 125,530 118,533" fill="#78909c"/>
+
+  <!-- Side outlet port (right) -->
+  <rect x="277" y="525" width="38" height="10" rx="4"
+        fill="url(#metalG)" stroke="#78909c" stroke-width="1"/>
+  <rect x="314" y="528" width="8" height="4" rx="1" fill="#607d8b"/>
+  <polygon points="322,527 315,530 322,533" fill="#78909c"/>
+
+  <!-- Water outlet hole at bottom -->
+  <rect x="213" y="573" width="14" height="10" rx="3" fill="url(#metalG)" stroke="#78909c" stroke-width="1"/>
+  <rect x="216" y="582" width="8"  height="14" rx="3" fill="#37474f"/>
+</g>
+<!-- Labels -->
+<text x="220" y="464" text-anchor="middle" font-size="9" fill="#8c9eff"
+      font-family="monospace" font-weight="bold">TST-55 PERMEAMETER</text>
+<text x="143" y="523" text-anchor="end" font-size="6" fill="#8c9eff" font-family="monospace">INLET</text>
+<text x="297" y="523" font-size="6" fill="#8c9eff" font-family="monospace">OUTLET</text>
+
+<!-- ── AIR VENT VALVE (bottom left of permeameter) ── -->
+<g>
+  <!-- Valve body -->
+  <rect x="80" y="522" width="44" height="18" rx="5"
+        fill="#1a237e" stroke="#3949ab" stroke-width="1.5"/>
+  <!-- Handle lever -->
+  <rect x="100" y="515" width="12" height="10" rx="2" fill="#283593"/>
+  <rect x="103" y="510" width="6"  height="7"  rx="1" fill="#1a237e"/>
+  <!-- LED -->
+  <circle id="airLed" cx="118" cy="531" r="4.5" fill="#ef5350" filter="url(#glowS)"/>
+  <!-- Pipe connection to permeameter side -->
+  <line x1="124" y1="531" x2="125" y2="531" stroke="#3949ab" stroke-width="3"/>
+</g>
+<text x="102" y="548" text-anchor="middle" font-size="7" fill="#8c9eff" font-family="monospace">AIR VENT VALVE</text>
+
+<!-- ── ANNULAR PHOTOELECTRIC SENSOR ── -->
+<!-- Ring around permeameter base -->
+<ellipse cx="220" cy="575" rx="64" ry="10"
+         fill="none" stroke="#aa00ff" stroke-width="2.5" stroke-dasharray="5,3" opacity=".85"/>
+<circle id="pls1" cx="158" cy="575" r="5" fill="#aa00ff" class="led" filter="url(#glowS)" opacity=".7"/>
+<circle id="pls2" cx="282" cy="575" r="5" fill="#aa00ff" class="led" filter="url(#glowS)" opacity=".7"/>
+<text x="220" y="592" text-anchor="middle" font-size="7" fill="#ce93d8"
+      font-family="monospace">ANNULAR PHOTOELECTRIC SENSOR</text>
+
+<!-- Animated water outlet flow from permeameter bottom -->
+<line id="outletFlow" x1="220" y1="595" x2="220" y2="615"
+      stroke="#4fc3f7" stroke-width="4" class="fl off" opacity=".85"/>
+
+<!-- ── COLLECTION BEAKER ── -->
+<g filter="url(#shadow)">
+  <polygon points="188,608 252,608 260,610 180,610"
+           fill="#050714" stroke="#1e2a80" stroke-width="2" opacity=".9"/>
+  <rect id="bkWater" x="179" y="608" width="83" height="0"
+        fill="url(#wG)" opacity=".75" clip-path="url(#bkClip)"/>
+  <!-- Graduation lines -->
+  <line x1="249" y1="608" x2="257" y2="608" stroke="#1e2a80" stroke-width="1.2"/>
+</g>
+<text x="220" y="616" text-anchor="middle" font-size="6.5" fill="#8c9eff"
+      font-family="monospace">WATER OUTLET / COLLECTION</text>
+
+<!-- ════════════════════════
+     COMPONENT CALL-OUT LABELS
+════════════════════════ -->
+<text x="58" y="270"  font-size="7" fill="#d4900a" font-family="monospace" font-weight="bold">LASER</text>
+<text x="58" y="279"  font-size="7" fill="#d4900a" font-family="monospace" font-weight="bold">SENSOR</text>
+<text x="200" y="26"  text-anchor="middle" font-size="8" fill="#d4900a"
+      font-family="monospace" font-weight="bold">GLASS TUBE (STANDPIPE)</text>
+<text x="210" y="38"  text-anchor="middle" font-size="6.5" fill="#5c6bc0" font-family="monospace">Float inside ↕ water falls during test</text>
+
+<!-- water particles group -->
+<g id="parts"></g>
+
+</svg>
+    </div><!-- /svgwrap -->
+  </div><!-- /col-mid -->
+
+  <!-- ══ RIGHT — Results & Data ══ -->
+  <div class="col col-right" id="colRight">
+    <div class="data-inner">
+
+      <div class="card c-full">
+        <h3>Live Sensor Readings</h3>
+        <div class="sensors">
+          <div class="sc" id="scH">
+            <div class="sl">Head H(t)</div>
+            <div class="sv" id="vH">—</div>
+            <div class="su">mm</div>
+          </div>
+          <div class="sc" id="scT">
+            <div class="sl">Elapsed Δt</div>
+            <div class="sv" id="vT">0</div>
+            <div class="su">sec</div>
+          </div>
+          <div class="sc" id="scH1">
+            <div class="sl">H₁ (start)</div>
+            <div class="sv" id="vH1">—</div>
+            <div class="su">mm</div>
+          </div>
+          <div class="sc" id="scH2">
+            <div class="sl">H₂ (end)</div>
+            <div class="sv" id="vH2">—</div>
+            <div class="su">mm</div>
+          </div>
+          <div class="sc" id="scTmp">
+            <div class="sl">Temp T</div>
+            <div class="sv" id="vTmp">20.0</div>
+            <div class="su">°C</div>
+          </div>
+          <div class="sc" id="scRun">
+            <div class="sl">Test #</div>
+            <div class="sv" id="vRun">0/5</div>
+            <div class="su"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card c-full gold-b">
+        <h3>Permeability Results</h3>
+        <div class="res-main">
+          <div class="rl">K₂₀ — Standard Permeability Coefficient</div>
+          <div class="rv" id="vK20">—</div>
+          <div class="ru">cm/s  (corrected to 20°C)</div>
+        </div>
+        <div class="res-sub">
+          <div class="rs"><div class="rsl">K_T</div>
+            <div class="rsv" id="vKT">—</div><div class="rsl">cm/s</div></div>
+          <div class="rs"><div class="rsl">η_T/η₂₀</div>
+            <div class="rsv" id="vEta">1.000</div><div class="rsl">correction</div></div>
+          <div class="rs"><div class="rsl">Δt</div>
+            <div class="rsv" id="vDt">—</div><div class="rsl">seconds</div></div>
+          <div class="rs"><div class="rsl">lg(H₁/H₂)</div>
+            <div class="rsv" id="vLg">—</div><div class="rsl">value</div></div>
+        </div>
+        <div class="formula-box">
+          <div class="f1">K_T = 2.3 × (a·L / A·Δt) × lg(H₁/H₂)</div>
+          <div class="f2">K₂₀ = K_T × η_T / η₂₀</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Head H(t) vs Time</h3>
+        <div class="chart-box"><canvas id="hChart" class="ch"></canvas></div>
+      </div>
+
+      <div class="card">
+        <h3>K₂₀ per Measurement</h3>
+        <div class="chart-box"><canvas id="kChart" class="ch"></canvas></div>
+      </div>
+
+      <div class="card c-full">
+        <h3>η_T/η₂₀ Correction Table (Standard for Geotechnical Testing Methods)</h3>
+        <div class="ttw">
+          <table class="tt">
+            <thead><tr>
+              <th>T(°C)</th><th>η/η₂₀</th>
+              <th>T(°C)</th><th>η/η₂₀</th>
+              <th>T(°C)</th><th>η/η₂₀</th>
+            </tr></thead>
+            <tbody id="etaTb"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card c-full">
+        <h3>System Log</h3>
+        <div class="log" id="logArea"></div>
+      </div>
+
+    </div><!-- /data-inner -->
+  </div><!-- /col-right -->
+
+</div><!-- /app -->
+
+<script>
+"use strict";
+/* ══════════ TABS ══════════ */
+const COLS={left:document.getElementById('colLeft'),
+            mid:document.getElementById('colMid'),
+            right:document.getElementById('colRight')};
+const TBTNS=[...document.querySelectorAll('#tabBar button')];
+function tab(n){
+  Object.keys(COLS).forEach(k=>COLS[k].classList.toggle('on',k===n));
+  TBTNS.forEach((b,i)=>b.classList.toggle('on',['left','mid','right'][i]===n));
+}
+function syncLayout(){
+  if(window.innerWidth>=600) Object.values(COLS).forEach(c=>c.classList.remove('on'));
+  else if(!Object.values(COLS).some(c=>c.classList.contains('on'))) tab('left');
+}
+window.addEventListener('resize',syncLayout);syncLayout();
+
+/* ══════════ VISCOSITY TABLE (from PDF) ══════════ */
+const ETA=[
+  [5,1.501],[5.5,1.478],[6,1.455],[6.5,1.435],[7,1.414],[7.5,1.393],
+  [8,1.373],[8.5,1.353],[9,1.334],[9.5,1.315],[10,1.297],[10.5,1.279],
+  [11,1.261],[11.5,1.244],[12,1.227],[12.5,1.211],[13,1.194],[13.5,1.178],
+  [14,1.163],[14.5,1.149],[15,1.133],[15.5,1.119],[16,1.104],[16.5,1.090],
+  [17,1.077],[17.5,1.063],[18,1.050],[18.5,1.038],[19,1.025],[19.5,1.012],
+  [20,1.000],[20.5,0.998],[21,0.976],[21.5,0.964],[22,0.953],[22.5,0.943],
+  [23,0.932],[24,0.910],[25,0.890],[26,0.870],[27,0.850],[28,0.833],
+  [29,0.815],[30,0.798],[31,0.781],[32,0.765],[33,0.750],[34,0.735],[35,0.720]
+];
+(()=>{
+  const tb=document.getElementById('etaTb');
+  for(let i=0;i<ETA.length;i+=3){
+    const tr=document.createElement('tr');tr.id='er'+i;
+    for(let j=0;j<3;j++){
+      const e=ETA[i+j];
+      const a=document.createElement('td'),b=document.createElement('td');
+      if(e){a.textContent=e[0].toFixed(1);b.textContent=e[1].toFixed(3);}
+      tr.appendChild(a);tr.appendChild(b);
+    }
+    tb.appendChild(tr);
+  }
+})();
+function getEta(T){
+  for(let i=0;i<ETA.length-1;i++){
+    if(T>=ETA[i][0]&&T<=ETA[i+1][0]){
+      const f=(T-ETA[i][0])/(ETA[i+1][0]-ETA[i][0]);
+      return ETA[i][1]+f*(ETA[i+1][1]-ETA[i][1]);
+    }
+  }
+  return 1.0;
+}
+function hlEta(T){
+  document.querySelectorAll('.tt tr').forEach(r=>r.classList.remove('hl'));
+  for(let i=0;i<ETA.length;i++){
+    if(Math.abs(ETA[i][0]-T)<0.3){
+      const el=document.getElementById('er'+Math.floor(i/3)*3);
+      if(el){el.classList.add('hl');el.scrollIntoView({block:'nearest'});}
+      break;
+    }
+  }
+}
+
+/* ══════════ SOIL ══════════ */
+const SOIL_K={gravel:1e-2,coarse_sand:1e-3,medium_sand:1e-4,
+  fine_sand:1e-5,silt:1e-6,clay:1e-7};
+const SOIL_C={
+  gravel:     ['#9a9a7a','#7a7a58','#5a5a3a'],
+  coarse_sand:['#c8a030','#a07818','#785a10'],
+  medium_sand:['#c09040','#986828','#705018'],
+  fine_sand:  ['#c8a870','#a88050','#806030'],
+  silt:       ['#a89888','#887868','#686050'],
+  clay:       ['#9a7868','#7a5848','#5a4030'],
+};
+
+/* ══════════ CONSTANTS ══════════ */
+const A_S=30.0, L_S=4.0; // sample area cm², height cm
+
+/* ══════════ STATE ══════════ */
+const P={soil:'coarse_sand',k:1e-3,T:20,H1:700,H2:200,a:1.77,nTests:5};
+const S={
+  phase:-1,running:false,idx:0,t:0,
+  H:0,H1a:0,H2a:0,dta:0,
+  KTs:[],K20s:[],
+  iid:null,pid:null,pht:0,
+};
+
+/* ══════════ CHARTS ══════════ */
+function mkC(id,col,unit,type='line'){
+  return new Chart(document.getElementById(id).getContext('2d'),{
+    type,
+    data:{labels:[],datasets:[{data:[],borderColor:col,backgroundColor:col+'18',
+      borderWidth:2,pointRadius:type==='bar'?5:0,tension:.38,fill:type!=='bar'}]},
+    options:{animation:false,responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:'#5c6bc0',font:{size:7},maxTicksLimit:8},grid:{color:'#1a237e22'}},
+        y:{min:0,ticks:{color:'#5c6bc0',font:{size:7},
+           callback:v=>v.toFixed(1)+unit},grid:{color:'#1a237e22'}}
+      }}
+  });
+}
+const HC=mkC('hChart','#4fc3f7',' mm');
+const KC=mkC('kChart','#d4900a','',   'bar');
+function pushC(c,l,v,m=80){
+  c.data.labels.push(l);c.data.datasets[0].data.push(v);
+  if(c.data.labels.length>m){c.data.labels.shift();c.data.datasets[0].data.shift();}
+  c.update('none');
+}
+function clrC(){[HC,KC].forEach(c=>{c.data.labels=[];c.data.datasets[0].data=[];c.update('none');});}
+
+/* ══════════ LOG ══════════ */
+function log(msg,t=''){
+  const a=document.getElementById('logArea');
+  const ts=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const cls={w:'lw',i:'li',e:'le'}[t]||'';
+  const d=document.createElement('div');
+  d.innerHTML=`<span class="lt">[${ts}]</span> <span class="${cls}">${msg}</span>`;
+  a.appendChild(d);a.scrollTop=a.scrollHeight;
+}
+
+/* ══════════ PARAMETER SETTERS ══════════ */
+function setSoil(){
+  const s=document.getElementById('soilType').value;
+  P.soil=s;P.k=SOIL_K[s];
+  const c=SOIL_C[s],g=document.getElementById('soilG');
+  g.children[0].setAttribute('stop-color',c[0]);
+  g.children[1].setAttribute('stop-color',c[1]);
+  g.children[2].setAttribute('stop-color',c[2]);
+  log(`Soil → ${s.replace(/_/g,' ')} | k_ref = ${P.k.toExponential(1)} cm/s`,'i');
+}
+function setT(v){
+  P.T=v;
+  document.getElementById('td').textContent=v.toFixed(1);
+  document.getElementById('vTmp').textContent=v.toFixed(1);
+  document.getElementById('vEta').textContent=getEta(v).toFixed(3);
+  hlEta(v);
+}
+
+/* ══════════ SVG HELPERS ══════════ */
+// Tube: H=1000mm → SVG y=62, H=0 → SVG y=368  range=306px
+function H2y(H){return 368-(Math.min(Math.max(H,0),1000)/1000)*306;}
+
+function updateTube(H){
+  const y=H2y(H), ht=368-y;
+  const tw=document.getElementById('tubeWater');
+  tw.setAttribute('y',y.toFixed(1));
+  tw.setAttribute('height',Math.max(0,ht).toFixed(1));
+  const sf=document.getElementById('wSurf');
+  sf.setAttribute('cy',y.toFixed(1));
+  sf.setAttribute('opacity',ht>4?'0.8':'0');
+  // Float follows surface
+  const fr=document.getElementById('floatRect');
+  fr.setAttribute('y',(y-5).toFixed(1));
+  // Laser beam and dot follow float
+  const lb=document.getElementById('laserBeam');
+  lb.setAttribute('y1',y.toFixed(1));
+  lb.setAttribute('y2',y.toFixed(1));
+  document.getElementById('laserDot').setAttribute('cy',y.toFixed(1));
+  // Callout label
+  const co=document.getElementById('hCallout');
+  const ct=document.getElementById('hCalloutTxt');
+  const cl=document.getElementById('hCalloutLine');
+  const cy=Math.max(70,Math.min(y,350));
+  co.setAttribute('y',(cy-8).toFixed(1));
+  ct.setAttribute('y',(cy+4).toFixed(1));
+  ct.textContent=`H = ${H.toFixed(0)} mm`;
+  cl.setAttribute('y1',cy.toFixed(1));cl.setAttribute('y2',cy.toFixed(1));
+  // Beaker fill (outflow approximation)
+  const frac=Math.max(0,Math.min((P.H1-H)/Math.max(P.H1-P.H2,1),1));
+  const bh=frac*22;
+  document.getElementById('bkWater').setAttribute('y',(610-bh).toFixed(1));
+  document.getElementById('bkWater').setAttribute('height',bh.toFixed(1));
+}
+
+function setFlows(outlets,supply,pump){
+  const tog=(id,on)=>{
+    const el=document.getElementById(id);
+    if(on) el.classList.remove('off'); else el.classList.add('off');
+  };
+  tog('outletFlow',outlets);
+  tog('inletFlow',outlets);
+  tog('supH',supply);
+  tog('supV',supply);
+  tog('pumpToTank',pump);
+  tog('storageToPump',pump);
+  document.getElementById('pumpBlade').classList.toggle('off',!pump);
+}
+
+function setHW(id,on,colorClass,onTxt,offTxt){
+  const d=document.getElementById('d'+id);
+  const t=document.getElementById('t'+id);
+  d.className='sd'+(on?' '+colorClass:'');
+  t.textContent=on?onTxt:offTxt;
+  t.style.color=on?'#69f0ae':'#ef5350';
+}
+
+function setLed(id,color){document.getElementById(id).setAttribute('fill',color);}
+
+function updLCD(step){
+  document.getElementById('lc0').textContent='设定高度: '+P.H1+' mm';
+  document.getElementById('lc1').textContent='排气时间: 10 s';
+  document.getElementById('lc2').textContent='出水滴数: 05';
+  document.getElementById('lc3').textContent='测试次数: '+String(P.nTests).padStart(2,'0');
+  document.getElementById('lc4').textContent='当前步骤: '+(step||'READY');
+}
+function updLS(s1,s2,s3){
+  // Level sensors 1,2,3
+  setHW('LS1',s1,'on-g','WATER','NO WATER');
+  setHW('LS2',s2,'on-b','WATER','NO WATER');
+  const d3=document.getElementById('dLS3');
+  const t3=document.getElementById('tLS3');
+  if(s3){d3.className='sd on-p';t3.textContent='UPPER LIMIT';t3.style.color='#ce93d8';}
+  else  {d3.className='sd';     t3.textContent='NORMAL';     t3.style.color='#5c6bc0';}
+  setLed('ls1Led',s1?'#69f0ae':'#ef5350');
+  setLed('ls2Led',s2?'#4fc3f7':'#ef5350');
+  setLed('ls3Led',s3?'#ce93d8':'#4fc3f7');
+  // Storage tank visual
+  const sw=document.getElementById('stoWater');
+  sw.setAttribute('height',s1?45:10);
+  sw.setAttribute('y',s1?535:575);
+}
+
+/* ══════════ PHASE MANAGEMENT ══════════ */
+const PNAMES=['Load Sample','Exhaust Air','Saturation','Fill to H₁','Measurement','Save Results'];
+function setPhase(n){
+  S.phase=n;S.t=0;S.pht=0;
+  for(let i=0;i<6;i++){
+    document.getElementById('pd'+i).className='pd'+(i<n?' done':i===n?' active':'');
+    document.getElementById('pl'+i).className='pl'+(i<n?' done':i===n?' active':'');
+  }
+  const badges=['idle','idle','exhaust','saturate','saturate','running','saving'];
+  const texts =['IDLE','LOADED','EXHAUST','SATURATE','FILLING','MEASURING','SAVING'];
+  setBadge(texts[n+1]||'IDLE', badges[n+1]||'idle');
+  log(`══ Phase ${n+1}: ${PNAMES[n]} ══`,'i');
+
+  /* ── Phase actions ── */
+  if(n===0){// Load sample
+    setHW('Pump',false,'on-g','ON','OFF');
+    setHW('Air', false,'on-y','OPEN','CLOSED');
+    setHW('Inlet',false,'on-b','OPEN','CLOSED');
+    setHW('Winj',false,'on-g','OPEN','CLOSED');
+    setHW('Laser',false,'on-y','ACTIVE','STANDBY');
+    setFlows(false,false,false);
+    updLS(true,true,false);
+    updLCD('LOAD');
+    log('(1) Load soil sample into TST-55 permeameter.','w');
+  }
+  if(n===1){// Exhaust air
+    // Step 2: Keep water injection valve, inlet valve and exhaust valve OPEN ~10s
+    setHW('Pump',true,'on-g','ON','OFF');
+    setHW('Air', true,'on-y','OPEN','CLOSED');
+    setHW('Inlet',true,'on-b','OPEN','CLOSED');
+    setHW('Winj',true,'on-g','OPEN','CLOSED');
+    setHW('Laser',false,'on-y','ACTIVE','STANDBY');
+    setFlows(false,true,true);
+    setLed('airLed','#69f0ae');
+    setLed('inletLed','#69f0ae');
+    setLed('winLed','#69f0ae');
+    setLed('pumpLed','#69f0ae');
+    updLCD('EXHAUST');
+    log('(2) Water inj. valve + inlet valve + air vent OPEN — evacuating air (~10s)','w');
+  }
+  if(n===2){// Saturation — close air vent, water flows through soil
+    // Step 3: Close exhaust valve, water flows out of outlet
+    setHW('Air',false,'on-y','OPEN','CLOSED');
+    setLed('airLed','#ef5350');
+    setFlows(true,true,true);
+    updLCD('SATURATE');
+    log('(3) Air vent CLOSED — waiting for predetermined water flow from outlet','w');
+  }
+  if(n===3){// Fill tube to H1
+    // Step 4: Open inlet valve, inject water to H1
+    setHW('Laser',true,'on-y','ACTIVE','STANDBY');
+    setLed('laserLed','#ffd600');
+    S.H=P.H2;
+    updateTube(P.H2);
+    updLCD('FILL H1');
+    log(`(4) Filling glass tube to H₁ = ${P.H1} mm — laser sensor monitoring…`,'w');
+    document.getElementById('mcuRun').setAttribute('fill','#69f0ae');
+  }
+  if(n===4){// Formal measurement
+    // Step 5: Close inlet+injection valves, then Step 6: open inlet, record
+    setHW('Inlet',true,'on-b','OPEN','CLOSED');
+    setLed('inletLed','#69f0ae');
+    S.idx=0;S.KTs=[];S.K20s=[];S.H=P.H1;S.H1a=P.H1;
+    updateTube(P.H1);
+    updLCD('MEASURE');
+    log(`(6) Formal measurement: H₁=${P.H1}mm → H₂=${P.H2}mm | ${P.nTests} tests`,'i');
+    document.getElementById('mcuRS4').setAttribute('fill','#4fc3f7');
+  }
+  if(n===5){// Save
+    setFlows(false,false,false);
+    setHW('Pump',false,'on-g','ON','OFF');
+    setHW('Inlet',false,'on-b','OPEN','CLOSED');
+    setHW('Laser',true,'on-y','ACTIVE','STANDBY');
+    document.getElementById('pumpBlade').classList.add('off');
+    setLed('pumpLed','#ef5350');
+    computeFinal();
+    document.getElementById('btnSave').disabled=false;
+    updLCD('COMPLETE');
+    log('(7) Measurement complete — review K₂₀ and save to FLASH.','i');
+  }
+}
+
+/* ══════════ START / STOP / RESET ══════════ */
+function startProcess(){
+  if(S.running)return;
+  S.running=true;
+  P.nTests=+document.getElementById('numTests').value;
+  document.getElementById('vRun').textContent='0/'+P.nTests;
+  document.getElementById('btnStart').disabled=true;
+  document.getElementById('btnStop').disabled=false;
+  document.getElementById('btnSkip').disabled=false;
+  clrC();
+  setPhase(0);
+  setTimeout(()=>setPhase(1),800);
+  S.iid=setInterval(tick,500);
+  startParts();
+  log('══ Process started ══','i');
+}
+function stopProcess(){
+  if(!S.running)return;
+  S.running=false;
+  clearInterval(S.iid);S.iid=null;
+  stopParts();setFlows(false,false,false);
+  document.getElementById('pumpBlade').classList.add('off');
+  document.getElementById('btnStart').disabled=false;
+  document.getElementById('btnStop').disabled=true;
+  document.getElementById('btnSkip').disabled=true;
+  ['Pump','Air','Inlet','Winj','Laser'].forEach(id=>setHW(id,false,'on-g','ON','OFF'));
+  [  'airLed','inletLed','winLed','pumpLed','laserLed'].forEach(id=>setLed(id,'#ef5350'));
+  setBadge('STOPPED','idle');
+  document.getElementById('mcuRun').setAttribute('fill','#263238');
+  document.getElementById('mcuRS4').setAttribute('fill','#263238');
+  log('Process stopped.','w');
+}
+function resetAll(){
+  stopProcess();stopParts();
+  S.phase=-1;S.t=0;S.idx=0;S.H=0;S.KTs=[];S.K20s=[];
+  for(let i=0;i<6;i++){
+    document.getElementById('pd'+i).className='pd';
+    document.getElementById('pl'+i).className='pl';
+  }
+  setBadge('IDLE','idle');clrC();
+  ['vH','vH1','vH2','vKT','vK20','vDt','vLg'].forEach(id=>document.getElementById(id).textContent='—');
+  document.getElementById('vT').textContent='0';
+  document.getElementById('vRun').textContent='0/'+P.nTests;
+  document.getElementById('vEta').textContent=getEta(P.T).toFixed(3);
+  ['scH','scT','scH1','scH2','scTmp','scRun'].forEach(id=>document.getElementById(id).classList.remove('on'));
+  document.getElementById('btnStart').disabled=false;
+  document.getElementById('btnStop').disabled=true;
+  document.getElementById('btnSkip').disabled=true;
+  document.getElementById('btnSave').disabled=true;
+  updateTube(0);
+  setFlows(false,false,false);
+  updLS(false,false,false);
+  updLCD('READY');
+  document.getElementById('mcuRun').setAttribute('fill','#263238');
+  document.getElementById('mcuRS4').setAttribute('fill','#263238');
+  log('System reset — ready.','i');
+}
+function saveResults(){
+  if(!S.K20s.length){log('No data to save.','w');return;}
+  const avg=S.K20s.reduce((a,b)=>a+b)/S.K20s.length;
+  log('══ DATA SAVED TO FLASH ══','i');
+  S.K20s.forEach((k,i)=>log(`  Test ${i+1}: K₂₀ = ${k.toExponential(3)} cm/s`,'i'));
+  log(`  Average K₂₀ = ${avg.toExponential(3)} cm/s @ 20°C`,'i');
+  log(`  Soil: ${P.soil.replace(/_/g,' ')} | T=${P.T}°C | a=${P.a}cm² | H₁=${P.H1} H₂=${P.H2}mm`);
+  setBadge('SAVED','complete');
+  document.getElementById('btnSave').disabled=true;
+}
+function advPhase(){if(S.phase<5)setPhase(S.phase+1);}
+function setBadge(t,c){
+  const el=document.getElementById('statusBadge');
+  el.textContent=t;el.className='badge '+c;
+}
+
+/* ══════════ TICK ══════════ */
+function tick(){
+  if(!S.running)return;
+  S.t++;S.pht++;
+
+  if(S.phase===1){// Exhaust: wait ~20 ticks
+    if(S.pht>=20){log('Exhaust done — air removed from flow channel.','i');setPhase(2);}
+    return;
+  }
+  if(S.phase===2){// Saturation: wait ~35 ticks, water drips out
+    if(S.pht>=35){log('Saturation done — predetermined water volume collected.','i');setPhase(3);}
+    return;
+  }
+  if(S.phase===3){// Fill tube: linear rise to H1 over ~30 ticks
+    const f=Math.min(S.pht/30,1);
+    S.H=P.H2+f*(P.H1-P.H2);
+    updateTube(S.H);
+    document.getElementById('vH').textContent=S.H.toFixed(0);
+    if(S.pht>=30){
+      S.H=P.H1;updateTube(P.H1);
+      log(`Glass tube filled to H₁ = ${P.H1} mm. Closing valves…`,'i');
+      setFlows(false,false,false);
+      setTimeout(()=>{setPhase(4);},400);
+    }
+    return;
+  }
+  if(S.phase===4){// Formal measurement: falling head
+    const H1c=S.H1a/10,A=A_S,a=P.a,L=L_S,k=P.k;
+    const n=1+(Math.random()-.5)*.012;
+    const hc=H1c*Math.exp(-(k*A*S.t)/(a*L))*n;
+    S.H=Math.max(hc*10, P.H2*0.45);
+    updateTube(S.H);
+    document.getElementById('vH').textContent=S.H.toFixed(1);
+    document.getElementById('vT').textContent=S.t;
+    document.getElementById('vH1').textContent=S.H1a.toFixed(0);
+    pushC(HC,S.t+'s',+S.H.toFixed(1));
+    if(S.H<=P.H2) recTest();
+    return;
+  }
+}
+
+function recTest(){
+  const H1c=S.H1a/10, H2c=S.H/10, dt=S.t;
+  const KT=2.3*(P.a*L_S)/(A_S*dt)*Math.log10(H1c/H2c);
+  const eta=getEta(P.T), K20=KT*eta;
+  S.H2a=S.H;S.dta=dt;
+  S.KTs.push(KT);S.K20s.push(K20);S.idx++;
+  document.getElementById('vKT').textContent=KT.toExponential(3);
+  document.getElementById('vK20').textContent=K20.toExponential(3);
+  document.getElementById('vEta').textContent=eta.toFixed(3);
+  document.getElementById('vDt').textContent=dt.toFixed(0);
+  document.getElementById('vLg').textContent=Math.log10(H1c/H2c).toFixed(3);
+  document.getElementById('vH2').textContent=S.H.toFixed(1);
+  document.getElementById('vRun').textContent=S.idx+'/'+P.nTests;
+  ['scH','scT','scH1','scH2','scTmp','scRun'].forEach(id=>document.getElementById(id).classList.add('on'));
+  pushC(KC,'#'+S.idx,+K20.toExponential(3));
+  log(`(6) Test ${S.idx}/${P.nTests}: Δt=${dt}s H₁=${S.H1a.toFixed(0)} H₂=${S.H.toFixed(1)}mm K_T=${KT.toExponential(3)} K₂₀=${K20.toExponential(3)}`,'i');
+  if(S.idx<P.nTests){
+    S.t=0;S.H=P.H1;S.H1a=P.H1;
+    updateTube(P.H1);
+    log(`Refilling to H₁=${P.H1}mm for test ${S.idx+1}…`,'w');
+  } else {
+    log(`(7) All ${P.nTests} measurements complete.`,'i');
+    setPhase(5);
+  }
+}
+function computeFinal(){
+  if(!S.K20s.length)return;
+  const avg=S.K20s.reduce((a,b)=>a+b)/S.K20s.length;
+  document.getElementById('vK20').textContent=avg.toExponential(3);
+  document.getElementById('vKT').textContent=(S.KTs.reduce((a,b)=>a+b)/S.KTs.length).toExponential(3);
+  log(`Average K₂₀ = ${avg.toExponential(3)} cm/s (ref: ${P.k.toExponential(1)})`,'i');
+}
+
+/* ══════════ WATER PARTICLES ══════════ */
+const DT=new Set();
+function startParts(){
+  stopParts();
+  S.pid=setInterval(()=>{
+    if(!S.running||S.phase<4)return;
+    const g=document.getElementById('parts');
+    const d=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    d.setAttribute('cx',(214+Math.random()*12).toFixed(1));
+    d.setAttribute('cy','597');
+    d.setAttribute('r', (1.5+Math.random()*1.5).toFixed(1));
+    d.setAttribute('fill','#4fc3f7');
+    d.setAttribute('opacity','.85');
+    g.appendChild(d);
+    let y=597,op=.85;
+    const tid=setInterval(()=>{
+      y+=4;op-=.09;
+      d.setAttribute('cy',y.toFixed(1));
+      d.setAttribute('opacity',Math.max(0,op).toFixed(2));
+      if(y>615||op<=0){clearInterval(tid);DT.delete(tid);
+        if(d.parentNode)d.parentNode.removeChild(d);}
+    },30);
+    DT.add(tid);
+  },200);
+}
+function stopParts(){
+  if(S.pid){clearInterval(S.pid);S.pid=null;}
+  DT.forEach(t=>clearInterval(t));DT.clear();
+  const g=document.getElementById('parts');
+  if(g)while(g.firstChild)g.removeChild(g.firstChild);
+}
+
+/* ══════════ INIT ══════════ */
+setSoil();setT(20);hlEta(20);
+updLCD('READY');updLS(false,false,false);
+updateTube(0);
+log('System initialised — STM32/CH32 controller ready.','i');
+log('Laser: Range 80m | Freq 1–20Hz | Acc ±1mm | Res 0.1mm','i');
+log('Permeameter: TST-55 | A=30cm² | L=40mm | Variable Head Method','i');
+log('3 Level sensors: LS1=Storage, LS2=Balancing, LS3=Upper limit','i');
+log('Formula: K_T=2.3(aL/AΔt)lg(H₁/H₂) → K₂₀=K_T·η_T/η₂₀','i');
+log('Set parameters then press ▶ Start.','w');
+</script>
+</body>
+</html>
